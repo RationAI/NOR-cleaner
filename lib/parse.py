@@ -1,3 +1,7 @@
+"""
+File for parsing datasets into DataFrames.
+"""
+
 import pickle
 import warnings
 from typing import Literal

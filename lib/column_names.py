@@ -1,0 +1,5 @@
+PATIENT_ID_NAME = "PacientId"
+ICD_CODE_NAME = "DgKod"
+RECORD_ID_NAME = "HlaseniIdDtb"
+PREDICTED_COLUMN = "vyporadani_final"
+PREDICTED_COLUMN_ENG = "FinalDecision"
