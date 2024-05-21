@@ -1,11 +1,11 @@
 # Ignore data directory
-data
+data/*
+
+# Do not ignore .gitkeep
+!.gitkeep
 
 # Ignore catboost_info directory
 catboost_info
-
-# Ignore tmp lock files
-knowledge/~$*
 
 # Ignore files with tmp prefix
 tmp*
