@@ -7,22 +7,22 @@ import pandas as pd
 # fmt: off
 NULL_COLUMNS = [
     # Column name, # Percentage of null values
-    "RizikovaKategorieKod",                         # 100.000000
-    "HistologieKlasifikaceKod",                     # 100.000000
-    "ZjednoduseneTnm",                              # 100.000000
-    "DuvodZmeny",                                   # 100.000000
-    "DiagnostickaSkupinaKod",                       # 100.000000
-    "DgRevizeMkn",                                  # 100.000000
-    "CytologieKlasifikaceKod",                      # 100.000000
-    "DiagnostickoSpecifStadium",                    #  99.890780
-    "SerovyNadorovyMarkerKod",                      #  99.747665
-    "OdpovedNaLecbu",                               #  99.653510
-    "LecbaNovotvaru",                               #  99.163905
-    "DiagnostickaSkupina",                          #  99.039620
-    "Py",                                           #  97.585869
-    "P16PozitivniKod",                              #  96.719644
-    "SpecifickaDg",                                 #  96.207442
-    "IdentifikaceZaznamuZeZdravotnickehoZarizeni",  #  96.150949
+    "RizikovaKategorieKod",                         # 100.00
+    "HistologieKlasifikaceKod",                     # 100.00
+    "ZjednoduseneTnm",                              # 100.00
+    "DuvodZmeny",                                   # 100.00
+    "DiagnostickaSkupinaKod",                       # 100.00
+    "DgRevizeMkn",                                  # 100.00
+    "CytologieKlasifikaceKod",                      # 100.00
+    "DiagnostickoSpecifStadium",                    #  99.89
+    "SerovyNadorovyMarkerKod",                      #  99.74
+    "OdpovedNaLecbu",                               #  99.65
+    "LecbaNovotvaru",                               #  99.16
+    "DiagnostickaSkupina",                          #  99.03
+    "Py",                                           #  97.58
+    "P16PozitivniKod",                              #  96.71
+    "SpecifickaDg",                                 #  96.20
+    "IdentifikaceZaznamuZeZdravotnickehoZarizeni",  #  96.15
 ]
 
 # These columns are redundant or not important
