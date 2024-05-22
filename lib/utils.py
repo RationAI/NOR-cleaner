@@ -5,10 +5,14 @@ import pandas as pd
 from IPython.display import HTML, display
 from sklearn.model_selection import train_test_split
 
-from lib.column_names import PREDICTED_COLUMN_ENG, PATIENT_ID_NAME, RECORD_ID_NAME
-from lib.parse import get_ready_data
+from lib.column_names import (
+    PATIENT_ID_NAME_ENG,
+    PREDICTED_COLUMN_ENG,
+    RECORD_ID_NAME_ENG,
+)
+from lib.load_dataset import get_ready_data
 
-TO_DROP_IDS = [PATIENT_ID_NAME, RECORD_ID_NAME]
+TO_DROP_IDS = [PATIENT_ID_NAME_ENG, RECORD_ID_NAME_ENG]
 
 
 Train_Dataset = pd.DataFrame
@@ -160,7 +164,7 @@ def get_split_data(
 ]:
     """
     Get the split data for the training, validation and testing.
-    
+
     Parameters:
         X: pd.DataFrame | None
             The features dataset. If None, it will be loaded by function `get_X_y`.

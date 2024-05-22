@@ -5,7 +5,7 @@ from typing import Any
 
 from sklearn.model_selection import StratifiedKFold
 
-from lib.permutations import augment_merged_x_y_df
+from lib.merge_records import augment_merged_x_y_df
 
 
 def get_wrong_preds_cross_val(
