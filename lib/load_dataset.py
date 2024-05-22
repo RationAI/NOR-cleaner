@@ -98,7 +98,42 @@ def get_ready_data(which: DatasetType) -> pd.DataFrame:
     return unpickle_data(f"{dataset_dir}/{DATA_PREPROCESSED_FILENAME}")
 
 
+def load_merged_data(
+    which: DatasetType,
+) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.Series]:
+    """
+    Load the merged data.
+
+    Parameters:
+        which: DatasetType
+            Which dataset to get.
+
+    Returns:
+        tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.Series]:
+            Tuple of X_merged, y_merged, report_ids and patient_ids.
+    """
+    data_dir = f"{get_dataset_directory(which)}/merged_data"
+
+    def join(data_dir, filename):
+        return data_dir + "/" + filename
+
+    x_merged_file = join(data_dir, "X_merged.pkl")
+    preds_file = join(data_dir, "y_merged.pkl")
+    report_ids_file = join(data_dir, "record_ids.pkl")
+    patient_ids_file = join(data_dir, "patient_ids.pkl")
+
+    X_merged = unpickle_data(x_merged_file)
+    y_merged = unpickle_data(preds_file)
+    report_ids = unpickle_data(report_ids_file)
+    patient_ids = unpickle_data(patient_ids_file)
+
+    return X_merged, y_merged, report_ids, patient_ids
+
+
 if __name__ == "__main__":
-    expert_df = get_ready_data(which="2019-2021")
+    # expert_df = get_ready_data(which="2019-2021")
     # expert_df = get_original_dataset(which="2019-2021")
-    print(expert_df.shape)
+    # print(expert_df.shape)
+
+    merged_data = load_merged_data(which="2019-2021")
+    print(merged_data[0].shape)
