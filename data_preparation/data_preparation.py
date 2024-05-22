@@ -18,7 +18,6 @@ from data_preparation.feature_transformation import (
     cols_to_int,
     count_records_per_patient,
     count_unknown_values,
-    dg_code_divide_into_cols,
     transform_dg_to_number,
     transform_distant_metastasis,
     transform_extend_of_disease,
@@ -31,7 +30,6 @@ from data_preparation.feature_transformation import (
     transform_morfologie_klasifikace_kod,
     transform_pn_examination_cols,
     transform_stadium,
-    transform_stanoveni_to_categories,
     transform_stanoveni_to_num,
     transform_topografie_kod,
 )
@@ -40,70 +38,7 @@ from data_preparation.translate_english import df_english_translation
 from lib.algo_filtering import algorithmic_filtering_icd_10
 from lib.column_names import PREDICTED_COLUMN_ENG
 from lib.load_dataset import get_original_dataset
-from lib.dataset_names import DATASET_LIST
-
-
-# Parse --which parameter from the command line
-parser = argparse.ArgumentParser()
-parser.add_argument("--which", type=str, default="2019-2021")
-
-args = parser.parse_args()
-DATASET_TYPE = args.which
-
-if DATASET_TYPE not in DATASET_LIST:
-    raise ValueError(f"Invalid dataset type. Choose from: {DATASET_LIST}")
-
-
-if DATASET_TYPE != "verify_dataset":
-    data = get_original_dataset(which=DATASET_TYPE)
-else:
-    # Unpickle completely new data
-    data = pd.read_pickle("data/verify_dataset/data_new_records.pkl")
-
-# Set the flag to use the algorithmic data
-
-print("Data by expert shape:", data.shape)
-
-
-# Drop Rows
-# Range C81-C96, D45-D47
-def drop_icd_in_range(df: pd.DataFrame, a: str, b: str) -> pd.DataFrame:
-    df = df.copy()
-
-    icd_three = df["DgKod"].str[:3]
-    df = df[~icd_three.between(a, b)]
-
-    return df
-
-
-do_drop_icd_ranges = False
-
-if do_drop_icd_ranges:
-    # Drop ICD codes that are not in the range of interest
-    data = drop_icd_in_range(data, "C81", "C96")
-    data = drop_icd_in_range(data, "D45", "D47")
-
-    print("Data by expert shape after dropping ICD codes:", data.shape)
-
-
-data, dropped_record_ids = algorithmic_filtering_icd_10(data)
-print("Number of algorithmically filtered records:", len(dropped_record_ids))
-
-# Division into Columns
-
-do_dg_code_divide_into_cols = False
-# do_dg_code_divide_into_cols = True
-
-if do_dg_code_divide_into_cols:
-    data = dg_code_divide_into_cols(data)
-
-# StanoveniDgKod to Categories
-
-do_transform_stanoveni_to_categories = False
-# do_transform_stanoveni_to_categories = True
-
-if do_transform_stanoveni_to_categories:
-    data = transform_stanoveni_to_categories(data)
+from lib.dataset_names import DATASET_LIST, DatasetType
 
 
 def all_transformations(df: pd.DataFrame) -> pd.DataFrame:
@@ -123,7 +58,6 @@ def all_transformations(df: pd.DataFrame) -> pd.DataFrame:
         transform_medical_institute_code,
         transform_all_tnm,
         transform_stanoveni_to_num,
-        # Count unknowns before date transformation
         count_unknown_values,
         partial(transform_date, drop=True),
         count_records_per_patient,
@@ -137,41 +71,57 @@ def all_transformations(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-data = all_transformations(data)
-
-
-# Data are ready
-
-# Move vyporadani_final to the end
-cols = list(data.columns)
-cols.remove(PREDICTED_COLUMN_ENG)
-
-if "by_expert" in cols:
-    cols.remove("by_expert")
-    cols.append("by_expert")
-
-cols.append(PREDICTED_COLUMN_ENG)
-data = data[cols]
-
-# Check there are no null values
-if data.isnull().sum().sum() != 0:
-    raise ValueError("There are still null values")
-
-print("Shape after all transformations:", data.shape)
-print(data.shape)
-
-# Check that there are no object columns
-if not data.select_dtypes(include="object").columns.empty:
-    raise ValueError(
-        f"Object columns: {data.select_dtypes(include='object').columns}"
+def _save_data(data: pd.DataFrame, dataset_type: DatasetType) -> None:
+    """
+    Save the data to a pickle file
+    """
+    data_preprocessed = (
+        f"{DATA_DIR}/{dataset_type}/{DATA_PREPROCESSED_FILENAME}"
     )
 
+    with open(data_preprocessed, "wb") as f:
+        pickle.dump(data, f)
+        print_str = f"Saved data to {data_preprocessed}"
+        print_str += f" at {datetime.datetime.now():%H:%M:%S, %d.%m.%Y}"
+        print(print_str)
 
-# Save the data
-data_preprocessed = f"{DATA_DIR}/{DATASET_TYPE}/{DATA_PREPROCESSED_FILENAME}"
 
-with open(data_preprocessed, "wb") as f:
-    pickle.dump(data, f)
-    print_str = f"Saved data to {data_preprocessed}"
-    print_str += f" at {datetime.datetime.now():%H:%M:%S, %d.%m.%Y}"
-    print(print_str)
+def prepare_data(dataset_type: DatasetType) -> pd.DataFrame:
+    """
+    Prepare the data for the model
+    """
+    data = get_original_dataset(which=dataset_type)
+    print(f"Data of type `{dataset_type}` loaded, shape:", data.shape)
+
+    data, dropped_record_ids = algorithmic_filtering_icd_10(data)
+    print(
+        "Number of algorithmically filtered records:", len(dropped_record_ids)
+    )
+
+    data = all_transformations(data)
+
+    # Move vyporadani_final to the end
+    cols = list(data.columns)
+    cols.remove(PREDICTED_COLUMN_ENG)
+
+    if "by_expert" in cols:
+        cols.remove("by_expert")
+        cols.append("by_expert")
+
+    cols.append(PREDICTED_COLUMN_ENG)
+    data = data[cols]
+
+    # Check there are no null values
+    if data.isnull().sum().sum() != 0:
+        raise ValueError("There are still null values")
+
+    # Check that there are no object columns
+    if not data.select_dtypes(include="object").columns.empty:
+        raise ValueError(
+            f"Object columns: {data.select_dtypes(include='object').columns}"
+        )
+
+    # Save the data
+    _save_data(data, dataset_type)
+
+    return data
