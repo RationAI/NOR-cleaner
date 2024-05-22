@@ -332,7 +332,7 @@ def drop_multi_cols(
     # Drop all except the zeroth one
     for col in cols:
         if col not in merged_df.columns:
-            print(f"Column {col} not in dataframe")
+            print(f"Warning: Column {col} not in dataframe")
             continue
 
         merged_df = merged_df.loc[
