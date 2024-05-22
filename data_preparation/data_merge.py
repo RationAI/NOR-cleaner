@@ -17,7 +17,7 @@ from data_preparation.merged_transformation import (
 )
 from lib.column_names import PREDICTED_COLUMN_ENG
 from lib.dataset_names import get_dataset_directory
-from lib.parse import get_ready_data
+from lib.load_dataset import get_ready_data
 from lib.merge_records import drop_multi_cols, merge_groups_each_row
 
 ID_COLS: list[str] = lib.utils.TO_DROP_IDS.copy()
@@ -85,38 +85,23 @@ X_merged = merge_groups_each_row(
 print("Shape after permuting:", X_merged.shape)
 
 
-def drop_columns_padded_rows(
-    merged_df: pd.DataFrame,
-) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
-    """
-    Drop columns that are the same for each row in the merged data.
-    """
-    merged_df = merged_df.copy()
+y_merged = X_merged[PREDICTED_COLUMN_ENG, 0].astype(int)
+record_ids = X_merged["RecordId"]
+patient_ids = X_merged["PatientId", 0].copy()
 
-    multi_cols = [
-        "PatientId",
-        "RecordCount",
-    ]
+MULTI_COLS_TO_DROP = [
+    "PatientId",
+    "RecordCount",
+]
 
-    merged_df = drop_multi_cols(merged_df, multi_cols, N_MERGED)
+X_merged = drop_multi_cols(X_merged, MULTI_COLS_TO_DROP, N_MERGED)
+# Drop column to predict
+X_merged.drop(columns=[PREDICTED_COLUMN_ENG], inplace=True)
 
-    y_merged = merged_df[PREDICTED_COLUMN_ENG][0].astype(int)
-    report_ids = merged_df["RecordId"]
-    patient_ids = merged_df["PatientId"][0].copy()
+# Transform float columns to int
+float_cols = X_merged.select_dtypes(include=float).columns
+X_merged[float_cols] = X_merged[float_cols].astype(int)
 
-    # Drop column to predict
-    merged_df.drop(columns=[PREDICTED_COLUMN_ENG], inplace=True)
-
-    # Transform float columns to int
-    float_cols = merged_df.select_dtypes(include=float).columns
-    merged_df[float_cols] = merged_df[float_cols].astype(int)
-
-    return merged_df, y_merged, report_ids, patient_ids
-
-
-X_merged, y_merged, report_ids, patient_ids = drop_columns_padded_rows(
-    X_merged
-)
 
 print("Shape after dropping columns:", X_merged.shape, y_merged.shape)
 
@@ -175,10 +160,12 @@ if non_null_num != 0:
     raise ValueError(f"Number of null values: {non_null_num}")
 
 
+print("Shape after transformations:", X_merged.shape, y_merged.shape)
+
 # Save the data
 X_MERGED_FILENAME = "X_merged.pkl"
 PREDS_FILENAME = "y_merged.pkl"
-REPORT_IDS_FILENAME = "report_ids.pkl"
+REPORT_IDS_FILENAME = "record_ids.pkl"
 PATIENT_IDS_FILENAME = "patient_ids.pkl"
 
 Path(TO_SAVE).mkdir(parents=True, exist_ok=True)
@@ -192,7 +179,7 @@ def dump_df(df: pd.DataFrame, filename: str) -> None:
 for df, filename in [
     (X_merged, X_MERGED_FILENAME),
     (y_merged, PREDS_FILENAME),
-    (report_ids, REPORT_IDS_FILENAME),
+    (record_ids, REPORT_IDS_FILENAME),
     (patient_ids, PATIENT_IDS_FILENAME),
 ]:
     dump_df(df, filename)

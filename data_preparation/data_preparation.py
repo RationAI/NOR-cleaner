@@ -38,7 +38,7 @@ from lib.dataset_names import DATA_PREPROCESSED_FILENAME, DATA_DIR
 from data_preparation.translate_english import df_english_translation
 from lib.algo_filtering import algorithmic_filtering_icd_10
 from lib.column_names import PREDICTED_COLUMN_ENG
-from lib.parse import get_original_dataset
+from lib.load_dataset import get_original_dataset
 
 
 DATASET_TYPE = "2019-2021"
