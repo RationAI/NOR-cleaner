@@ -50,10 +50,16 @@ def df_english_translation(df: pd.DataFrame) -> pd.DataFrame:
         "PN_Encoded": "PN",
         "PM_Encoded": "PM",
         "DatumStanoveniDg_Encoded": "NoveltyRank",
+        "DatumStanoveniDg": "DateOfEstablishingDg",
         "RecordCount": "RecordCount",
         "AlgoFiltered": "AlgoFiltered",
         "UnknownCount": "UnknownCount",
     }
+
+    # If a column is not in the translation_dict, raise an error
+    for col in df.columns:
+        if col not in translation_dict:
+            raise ValueError(f"Column {col} not in translation_dict")
 
     df.columns = [translation_dict[col] for col in df.columns]
 
