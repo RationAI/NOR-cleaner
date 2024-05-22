@@ -1,3 +1,4 @@
+import argparse
 import datetime
 import pickle
 from functools import partial
@@ -27,6 +28,13 @@ ID_COLS: list[str] = lib.utils.TO_DROP_IDS.copy()
 DATASET_TYPE = "2019-2021"
 # # Test data
 # DATASET_TYPE = "verify_dataset"
+
+# Parse dataset type from the command line
+parser = argparse.ArgumentParser()
+parser.add_argument("--which", type=str, default=DATASET_TYPE)
+
+args = parser.parse_args()
+DATASET_TYPE = args.which
 
 # Take patients with RecordCount in the range
 TAKE_RANGE = (2, 3)
@@ -133,7 +141,11 @@ DONT_TAKE_COLS_FEATURE_DIFF = [
     "SentinelLymphNode",
 ]
 
-COLS_FEATURE_DIFF = [col for col, _ in X_merged.columns if col not in DONT_TAKE_COLS_FEATURE_DIFF]
+COLS_FEATURE_DIFF = [
+    col
+    for col, _ in X_merged.columns
+    if col not in DONT_TAKE_COLS_FEATURE_DIFF
+]
 
 
 def all_merged_transformations(df: pd.DataFrame) -> pd.DataFrame:
@@ -143,7 +155,12 @@ def all_merged_transformations(df: pd.DataFrame) -> pd.DataFrame:
         # partial(records_equal, n=N_MERGED),
         partial(add_cols_equal, cols=COLS_EQUAL_COUNT, n=N_MERGED),
         partial(feature_difference, cols=COLS_FEATURE_DIFF, n=N_MERGED),
-        partial(difference_in_dates, n=N_MERGED, date_cols=["DateOfEstablishingDg"], drop=True),
+        # partial(
+        #     difference_in_dates,
+        #     n=N_MERGED,
+        #     date_cols=["DateOfEstablishingDg"],
+        #     drop=True,
+        # ),
     ]
 
     for func in PIPELINE:

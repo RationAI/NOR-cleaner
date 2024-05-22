@@ -6,6 +6,7 @@ File for data preparation
 """
 
 
+import argparse
 import datetime
 import pickle
 from functools import partial
@@ -39,11 +40,18 @@ from data_preparation.translate_english import df_english_translation
 from lib.algo_filtering import algorithmic_filtering_icd_10
 from lib.column_names import PREDICTED_COLUMN_ENG
 from lib.load_dataset import get_original_dataset
+from lib.dataset_names import DATASET_LIST
 
 
-DATASET_TYPE = "2019-2021"
-# DATASET = "2022"
-# DATASET = "verify_dataset"
+# Parse --which parameter from the command line
+parser = argparse.ArgumentParser()
+parser.add_argument("--which", type=str, default="2019-2021")
+
+args = parser.parse_args()
+DATASET_TYPE = args.which
+
+if DATASET_TYPE not in DATASET_LIST:
+    raise ValueError(f"Invalid dataset type. Choose from: {DATASET_LIST}")
 
 
 if DATASET_TYPE != "verify_dataset":
@@ -117,7 +125,7 @@ def all_transformations(df: pd.DataFrame) -> pd.DataFrame:
         transform_stanoveni_to_num,
         # Count unknowns before date transformation
         count_unknown_values,
-        partial(transform_date, drop=False),
+        partial(transform_date, drop=True),
         count_records_per_patient,
         df_english_translation,
     ]
