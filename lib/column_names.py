@@ -1,5 +1,7 @@
 PATIENT_ID_NAME = "PacientId"
+PATIENT_ID_NAME_ENG = "PatientId"
 ICD_CODE_NAME = "DgKod"
 RECORD_ID_NAME = "HlaseniIdDtb"
+RECORD_ID_NAME_ENG = "RecordId"
 PREDICTED_COLUMN = "vyporadani_final"
 PREDICTED_COLUMN_ENG = "FinalDecision"
