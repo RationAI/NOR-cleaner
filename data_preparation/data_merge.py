@@ -10,6 +10,7 @@ from data_preparation.column_names import ALGO_FILTERED_COLUMN
 from data_preparation.merged_transformation import (
     add_cols_equal,
     any_c76_c80_check,
+    difference_in_dates,
     equality_of_dg_codes,
     feature_difference,
     init_fillna_dict,
@@ -132,9 +133,7 @@ DONT_TAKE_COLS_FEATURE_DIFF = [
     "SentinelLymphNode",
 ]
 
-COLS_FEATURE_DIFF = X_merged.columns.drop(
-    [col for col in DONT_TAKE_COLS_FEATURE_DIFF if col in X_merged.columns]
-)
+COLS_FEATURE_DIFF = [col for col, _ in X_merged.columns if col not in DONT_TAKE_COLS_FEATURE_DIFF]
 
 
 def all_merged_transformations(df: pd.DataFrame) -> pd.DataFrame:
@@ -144,6 +143,7 @@ def all_merged_transformations(df: pd.DataFrame) -> pd.DataFrame:
         # partial(records_equal, n=N_MERGED),
         partial(add_cols_equal, cols=COLS_EQUAL_COUNT, n=N_MERGED),
         partial(feature_difference, cols=COLS_FEATURE_DIFF, n=N_MERGED),
+        partial(difference_in_dates, n=N_MERGED, date_cols=["DateOfEstablishingDg"], drop=True),
     ]
 
     for func in PIPELINE:

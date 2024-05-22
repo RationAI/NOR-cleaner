@@ -34,6 +34,8 @@ def init_fillna_dict(df: pd.DataFrame) -> dict[str, Any]:
         "MorphGrading": get_min("MorphGrading"),
         "RecordCount": -1,
         "UnknownCount": -1,
+        # Call datetime64[ns] to get date in 1900
+        "DateOfEstablishingDg": pd.to_datetime("1900-01-01"),
     }
 
     # Check that all columns from the DataFrame are in the FILLNA_DICT
@@ -159,12 +161,14 @@ def add_cols_equal(df: pd.DataFrame, cols: list[str], n: int) -> pd.DataFrame:
     return df
 
 
-def feature_difference(df: pd.DataFrame, cols: list[str], n: int) -> pd.DataFrame:
+def feature_difference(
+    df: pd.DataFrame, cols: list[str], n: int
+) -> pd.DataFrame:
     """
     Subtracts the i-th column from the first column.
     Add columns `colname_Diff_i` for each column `colname_i` in `cols`.
     It is calculated as `colname_0 - colname_i`.
-    
+
     Parameters:
         df: pd.DataFrame
             DataFrame with the data.
@@ -177,18 +181,53 @@ def feature_difference(df: pd.DataFrame, cols: list[str], n: int) -> pd.DataFram
     """
     df = df.copy()
 
-    for colname, idx in cols:
-        if idx != 0:
-            continue
+    for colname in cols:
+        for i in range(1, n):
+            if (colname, i) not in df.columns:
+                break
+
+            new_column = f"{colname}_Diff"
+            df[new_column, i] = df[colname, 0] - df[colname, i]
+
+    return df
+
+
+def difference_in_dates(
+    df: pd.DataFrame, date_cols: list[str], n: int, drop: bool = False
+) -> pd.DataFrame:
+    """
+    Subtracts the i-th date from the first date. The difference is the number of days.
+    Add columns `colname_Diff_i` for each date in `date_cols`.
+
+    Parameters:
+        df: pd.DataFrame
+            DataFrame with the data.
+
+        date_cols: list[str]
+            List of date columns for which to calculate the difference.
+
+        n: int
+            Number of columns in a row.
+
+        drop: bool
+            Whether to drop the original date columns.
+    """
+    df = df.copy()
+
+    for colname in date_cols:
+        if df[colname, 0].dtype != "datetime64[ns]":
+            raise ValueError(
+                f"Column {colname} is not a date column: {df[colname, 0].dtype}"
+            )
 
         for i in range(1, n):
             if (colname, i) not in df.columns:
                 break
 
             new_column = f"{colname}_Diff"
-            df[new_column, i] = (
-                df[colname][0]
-                - df[colname][i]
-            )
+            df[new_column, i] = (df[colname, 0] - df[colname, i]).dt.days
+
+        if drop:
+            df.drop(columns=[(colname, i) for i in range(n)], inplace=True)
 
     return df

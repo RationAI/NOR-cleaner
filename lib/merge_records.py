@@ -49,7 +49,7 @@ def merge_entries(
                 continue
 
             for i in range(n):
-                df_pivot[(col, i)] = df_pivot[(col, i)].fillna(fill)
+                df_pivot[col, i] = df_pivot[col, i].fillna(fill)
 
     # If there are null values in the df, throw an error
     if not df_pivot.notnull().all().all():

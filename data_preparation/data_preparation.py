@@ -115,8 +115,9 @@ def all_transformations(df: pd.DataFrame) -> pd.DataFrame:
         transform_medical_institute_code,
         transform_all_tnm,
         transform_stanoveni_to_num,
-        partial(transform_date, drop=True),
+        # Count unknowns before date transformation
         count_unknown_values,
+        partial(transform_date, drop=False),
         count_records_per_patient,
         df_english_translation,
     ]

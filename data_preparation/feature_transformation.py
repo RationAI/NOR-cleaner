@@ -492,7 +492,9 @@ def dg_code_divide_into_cols(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def transform_dg_to_number(df: pd.DataFrame, drop: bool = False) -> pd.DataFrame:
+def transform_dg_to_number(
+    df: pd.DataFrame, drop: bool = False
+) -> pd.DataFrame:
     """
     Encode DgKod to number:
 
@@ -890,13 +892,29 @@ def transform_date(data: pd.DataFrame, drop: bool = False) -> pd.DataFrame:
     return data
 
 
-def count_unknown_values(df: pd.DataFrame) -> pd.DataFrame:
+def count_unknown_values(
+    df: pd.DataFrame, ignore_cols: list[str] | None = None
+) -> pd.DataFrame:
     """
     Count the number of unknown values in each row.
-    If there are non int values, raise an error.
+    The unknown values are values < 0.
+    If there are non int values, these are ignored.
+
+    Parameters:
+        df: pd.DataFrame
+            DataFrame with the data.
+        ignore_cols: list[str] | None
+            List of columns to ignore. Default is None.
     """
+    if ignore_cols is None:
+        ignore_cols = []
+
+    cols_to_take = df.select_dtypes(include=[np.number]).columns.drop(
+        ignore_cols
+    )
+
     df = df.copy()
-    df["UnknownCount"] = df.apply(lambda row: sum(row < 0), axis=1)
+    df["UnknownCount"] = df[cols_to_take].apply(lambda row: sum(row < 0), axis=1)
 
     return df
 
