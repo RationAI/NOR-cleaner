@@ -1,5 +1,6 @@
 # NOR-cleaner
-AI model for resolving duplicities in Czech National Oncology Register. Bachelor's thesis about this project is available [here](https://is.muni.cz/auth/th/lkudy/development_of_data_deduplication_model_nor.pdf).
+AI model for resolving duplicities in Czech National Oncology Register.
+A bachelor's thesis about this project is available [here](https://is.muni.cz/auth/th/lkudy/development_of_data_deduplication_model_nor.pdf).
 
 ## Requirements
 - Python 3.11 or newer
