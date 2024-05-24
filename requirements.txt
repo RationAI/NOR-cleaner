@@ -2,4 +2,5 @@ shap
 pandas
 numpy
 matplotlib
-sci-kit learn
+scikit-learn
+xgboost
