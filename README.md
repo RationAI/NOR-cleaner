@@ -21,5 +21,5 @@ A bachelor's thesis about this project is available [here](https://is.muni.cz/au
     - call `python -m prepare_data --help` for information about flags
     - This script will preprocess data for the models, both for models with one record and models with concatenated records
 3. Use Jupyter Notebooks `models_*.ipynb` to train models and evaluate their performance
-    - `models_merged_data.ipynb` is used for models with concatenated records
+    - `models_concatenated_data.ipynb` is used for models with concatenated records
     - `models_one_entry.ipynb` is used for models with one record
