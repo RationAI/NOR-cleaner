@@ -103,11 +103,6 @@ def prepare_data(dataset_type: DatasetType) -> pd.DataFrame:
     # Move vyporadani_final to the end
     cols = list(data.columns)
     cols.remove(PREDICTED_COLUMN_ENG)
-
-    if "by_expert" in cols:
-        cols.remove("by_expert")
-        cols.append("by_expert")
-
     cols.append(PREDICTED_COLUMN_ENG)
     data = data[cols]
 
