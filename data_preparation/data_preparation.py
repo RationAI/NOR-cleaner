@@ -13,32 +13,37 @@ from functools import partial
 
 import pandas as pd
 
+from data_preparation.algo_filtering import algorithmic_filtering_icd_10
+from data_preparation.columns_check import check_columns
 from data_preparation.drop_columns import drop_columns
 from data_preparation.feature_transformation import (
     cols_to_int,
     count_records_per_patient,
     count_unknown_values,
+    fill_nan_to_zero,
+    transform_all_tnm,
+    transform_date,
     transform_dg_to_number,
     transform_distant_metastasis,
     transform_extend_of_disease,
-    fill_nan_to_zero,
-    transform_sentinel_lymph_node,
-    transform_all_tnm,
-    transform_date,
     transform_lateralita_kod,
     transform_medical_institute_code,
     transform_morfologie_klasifikace_kod,
     transform_pn_examination_cols,
+    transform_sentinel_lymph_node,
     transform_stadium,
     transform_stanoveni_to_num,
     transform_topografie_kod,
 )
-from lib.dataset_names import DATA_PREPROCESSED_FILENAME, DATA_DIR
 from data_preparation.translate_english import df_english_translation
-from data_preparation.algo_filtering import algorithmic_filtering_icd_10
 from lib.column_names import PREDICTED_COLUMN_ENG
+from lib.dataset_names import (
+    DATA_DIR,
+    DATA_PREPROCESSED_FILENAME,
+    DATASET_LIST,
+    DatasetType,
+)
 from lib.load_dataset import get_original_dataset
-from lib.dataset_names import DATASET_LIST, DatasetType
 
 
 def all_transformations(df: pd.DataFrame) -> pd.DataFrame:
@@ -92,6 +97,9 @@ def prepare_data(dataset_type: DatasetType) -> pd.DataFrame:
     """
     data = get_original_dataset(which=dataset_type)
     print(f"Data of type `{dataset_type}` loaded, shape:", data.shape)
+
+    # Check that all necessary columns are present
+    check_columns(data)
 
     data, dropped_record_ids = algorithmic_filtering_icd_10(data)
     print(
