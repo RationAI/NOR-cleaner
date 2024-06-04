@@ -54,7 +54,7 @@ def get_original_dataset(which: DatasetType) -> pd.DataFrame:
             Path to the dataset file.
 
         which: DatasetType
-            Which dataset to get. Defaults to "2019-2021".
+            Which dataset to get.
 
     Returns:
         pd.DataFrame:
@@ -63,13 +63,11 @@ def get_original_dataset(which: DatasetType) -> pd.DataFrame:
     dataset_path = get_dataset_directory(which)
     dtype, parse_dates = parse_dtypes(f"{dataset_path}/data_dtypes.csv")
 
-    # Ignore UserWarning
-    with warnings.catch_warnings(action="ignore"):
-        dataset = pd.read_csv(
-            f"{dataset_path}/{ORIGINAL_DATASET_FILENAME}",
-            dtype=dtype,
-            parse_dates=parse_dates,
-        )
+    dataset = pd.read_csv(
+        f"{dataset_path}/{ORIGINAL_DATASET_FILENAME}",
+        dtype=dtype,
+        parse_dates=parse_dates,
+    )
 
     return dataset
 
