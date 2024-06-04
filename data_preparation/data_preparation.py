@@ -1,12 +1,6 @@
-#!/usr/bin/env python
-# coding: utf-8
-
 """
 File for data preparation
 """
-
-
-import argparse
 import datetime
 import pickle
 from functools import partial
