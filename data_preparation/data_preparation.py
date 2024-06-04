@@ -35,7 +35,7 @@ from data_preparation.feature_transformation import (
 )
 from lib.dataset_names import DATA_PREPROCESSED_FILENAME, DATA_DIR
 from data_preparation.translate_english import df_english_translation
-from lib.algo_filtering import algorithmic_filtering_icd_10
+from data_preparation.algo_filtering import algorithmic_filtering_icd_10
 from lib.column_names import PREDICTED_COLUMN_ENG
 from lib.load_dataset import get_original_dataset
 from lib.dataset_names import DATASET_LIST, DatasetType
