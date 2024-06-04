@@ -1,16 +1,9 @@
 import pandas as pd
 import numpy as np
 
-from data_preparation.column_names import ALGO_FILTERED_COLUMN, PATIENT_ID_NAME
+from data_preparation.column_names import *
 
-TNM_LIST = [
-    "T",
-    "N",
-    "M",
-    "PT",
-    "PN",
-    "PM",
-]
+TNM_LIST = [T, N, M, PT, PN, PM]
 
 
 def transform_replace_tnm_with_ptnm(
@@ -27,13 +20,8 @@ def transform_replace_tnm_with_ptnm(
             The name of the column to transform. Either T, N or M.
     """
 
-    if name not in ["T", "N", "M"]:
-        raise ValueError(f"{name} is not T, N, M")
-
-    name = name + "_Encoded"
-
-    if "T_Encoded" not in df.columns:
-        raise ValueError("T_Encoded not in columns")
+    if name not in [T, N, M]:
+        raise ValueError(f"{name} is not {T}, {N} or {M}")
 
     if name not in df.columns:
         raise ValueError(f"{name} not in columns")
@@ -52,15 +40,10 @@ def transform_tnm(df: pd.DataFrame, name: str) -> pd.DataFrame:
     """
     Transform the T, N, M, PT, PN, PM columns in the DataFrame.
     The transformation is as follows:
-    - Classification with other letter on the second position (e.g. 1a) as 6
-    - Replace [0-4].* with [0-4]
-    - Replace is.* with 5
+    - Replace is.* and [abcm] with 0
+    - Replace [0-4].* with [0-4] + 1
     - Replace NaN with -2
-    - Replace x with -1
-    - Replace X with -1
-    - Replace is.* with 1
-    - Replace a with 2
-    - Drop the original column
+    - Replace [xX] with -1
 
     Parameters:
         df: pd.DataFrame
@@ -68,44 +51,33 @@ def transform_tnm(df: pd.DataFrame, name: str) -> pd.DataFrame:
         name: str
             The name of the column to transform.
     """
-
-    assert f"{name}-notna" not in df.columns
-    assert f"{name}_Ordinal" not in df.columns
-
     if name not in df.columns:
         raise ValueError(f"{name} not in columns")
 
     df = df.copy()
 
-    encoded_name = f"{name}_Encoded"
+    df[name] = df[name].fillna("-2").astype(str)
 
-    df[encoded_name] = df[name].fillna("-2").astype(str)
-
-    # Classification with other letter on the second position as 6
-    df[encoded_name] = (
-        df[encoded_name]
-        .str.replace(r"^[abc].*$", "6", regex=True)
-        .replace(r"^[1-4][abcm].*$", "6", regex=True)
+    # [0-4] -> [0-4] + 1
+    df[name] = df[name].str.replace(
+        r"^([0-4]).*$", lambda x: str(int(x.group()[0]) + 1), regex=True
     )
 
-    # Replace is.* with 5
-    df[encoded_name] = df[encoded_name].str.replace(r"^is.*$", "5", regex=True)
+    # [abcm] -> 0
+    df[name] = df[name].replace(r"^[abcm].*$", "0", regex=True)
 
-    # Replace [0-4].* with [0-4]
-    df[encoded_name] = df[encoded_name].str.replace(
-        r"^[0-4].*$", lambda x: str(int(x.group()[0])), regex=True
-    )
+    # is.* -> 0
+    df[name] = df[name].replace(r"^is.*$", "0", regex=True)
 
-    # Replace x with X
-    df[encoded_name] = df[encoded_name].replace("x", "X")
+    # [xX] -> -1
+    df[name] = df[name].replace(r"^[xX]$", "-1", regex=True)
 
-    # Replace X with -1
-    df[encoded_name] = df[encoded_name].replace("X", "-1")
+    assert (
+        df[name].isnull().sum() == 0
+    ), f"There are still NaN values: {df[name].isnull().sum()}"
 
     # Set as int
-    df[encoded_name] = df[encoded_name].astype("int64")
-
-    df.drop([name], axis=1, inplace=True)
+    df[name] = df[name].astype("int64")
 
     return df
 
@@ -115,7 +87,7 @@ def transform_all_tnm(df: pd.DataFrame) -> pd.DataFrame:
     for name in TNM_LIST:
         df = transform_tnm(df, name)
 
-    for name in ["T", "N", "M"]:
+    for name in [T, N, M]:
         df = transform_replace_tnm_with_ptnm(df, name)
 
     return df
@@ -123,14 +95,12 @@ def transform_all_tnm(df: pd.DataFrame) -> pd.DataFrame:
 
 def transform_tnm_count(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
-
-    if "T_Encoded" not in df.columns:
-        df = transform_all_tnm(df)
+    df = transform_all_tnm(df)
 
     df["TNM_Count"] = (
-        (df["T_Encoded"] >= 0).astype("int64")
-        + (df["N_Encoded"] >= 0).astype("int64")
-        + (df["M_Encoded"] >= 0).astype("int64")
+        (df[T] >= 0).astype("int64")
+        + (df[N] >= 0).astype("int64")
+        + (df[M] >= 0).astype("int64")
     )
 
     return df
@@ -139,21 +109,13 @@ def transform_tnm_count(df: pd.DataFrame) -> pd.DataFrame:
 def tnm_stadium_range_known(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
 
-    unknown_val_disease = 9
-    df["OnemocneniKod"] = (
-        df["OnemocneniKod"]
-        .fillna(unknown_val_disease)
-        .astype(float)
-        .astype("int64")
-    )
-    known_disease_extend = df["OnemocneniKod"] < unknown_val_disease
+    df = transform_extend_of_disease(df)
+    known_disease_extend = df[EXTEND_OF_DISEASE] >= 0
 
-    unknown_val_stadium = 9
-    df["Stadium"] = transform_stadium(df)["Stadium_Transformed"]
+    df = transform_stadium(df)
+    known_stadium = df["Stadium"] >= 0
 
-    known_stadium = df["Stadium"] < unknown_val_stadium
-
-    df = transform_tnm_count(df)
+    df["TNM_Count"] = transform_tnm_count(df)["TNM_Count"]
     tnm_known = df["TNM_Count"] == 3
 
     df["TNM_Stadium_Range_Known"] = (
@@ -168,34 +130,31 @@ def transform_stadium(df: pd.DataFrame) -> pd.DataFrame:
     Transform the Stadium column.
     Only the first digit is taken into account.
     """
-    col_name = "Stadium"
-    transf_name = col_name + "_Transformed"
-
     df = df.copy()
-    df[transf_name] = df[col_name].str[0].astype("int64")
+    df[CLINICAL_STADIUM] = df[CLINICAL_STADIUM].str[0].astype("int64")
 
     unknown_val = 9
-    df[transf_name] = df[transf_name].fillna(unknown_val).astype("int64")
+    df[CLINICAL_STADIUM] = (
+        df[CLINICAL_STADIUM].fillna(unknown_val).astype("int64")
+    )
 
     # 7 means stadium is not given
     # 9 means stadium is not known
     # 6 means metastasis for unknown primary location
     # 6 is set as lowest since most of the records with this value are declined
-    df.replace({transf_name: {7: -1, 9: -2, 6: -3}}, inplace=True)
+    df.replace({CLINICAL_STADIUM: {7: -1, 9: -2, 6: -3}}, inplace=True)
 
-    df.drop([col_name], axis=1, inplace=True)
     return df
 
 
 def transform_histology_known(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
 
-    col_name = "MorfologieKlasifikaceKod"
-    unkown_val = 33333
-    df[col_name] = df[col_name].fillna(unkown_val)
-    df[col_name] = df[col_name].astype("int64")
+    UNKNOWN_VAL = 33333
+    df[MORPHOLOGY_CODE] = df[MORPHOLOGY_CODE].fillna(UNKNOWN_VAL)
+    df[MORPHOLOGY_CODE] = df[MORPHOLOGY_CODE].astype("int64")
 
-    df["KnownHistology"] = (df[col_name] != unkown_val).astype("int64")
+    df["KnownHistology"] = (df[MORPHOLOGY_CODE] != UNKNOWN_VAL).astype("int64")
 
     return df
 
@@ -203,13 +162,16 @@ def transform_histology_known(df: pd.DataFrame) -> pd.DataFrame:
 def transform_grading_known(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
 
-    col_name = "MorfologieGradingKod"
-    unkown_val = 9
+    UNKNOWN_VAL = 9
 
-    df[col_name] = df[col_name].fillna(unkown_val)
-    df[col_name] = df[col_name].astype(float).astype("int64")
+    df[MORPHOLOGY_GRADING] = df[MORPHOLOGY_GRADING].fillna(UNKNOWN_VAL)
+    df[MORPHOLOGY_GRADING] = (
+        df[MORPHOLOGY_GRADING].astype(float).astype("int64")
+    )
 
-    df["Grading_Known"] = (df[col_name] != unkown_val).astype("int64")
+    df["Grading_Known"] = (df[MORPHOLOGY_GRADING] != UNKNOWN_VAL).astype(
+        "int64"
+    )
 
     return df
 
@@ -218,19 +180,19 @@ def transform_medical_institute_code(data):
     """
     Transform DiagnostikujiciZdravotnickeZarizeniKod to number
     """
-    col_name = "DiagnostikujiciZdravotnickeZarizeniKod"
-    transf_name = "DiagnostikujiciZZTyp"
+    if MEDICAL_INSTITUTE_CODE not in data.columns:
+        raise ValueError(f"{MEDICAL_INSTITUTE_CODE} not in columns")
 
-    assert col_name in data.columns
-
-    data[col_name] = data[col_name].astype("string")
+    data[MEDICAL_INSTITUTE_CODE] = data[MEDICAL_INSTITUTE_CODE].astype(
+        "string"
+    )
 
     # Other value
-    data[transf_name] = 0
+    data[MEDICAL_INSTITUTE_TYPE] = 0
 
     # NOR
     data.loc[
-        data[col_name]
+        data[MEDICAL_INSTITUTE_CODE]
         .str[:11]
         .isin(
             [
@@ -240,7 +202,7 @@ def transform_medical_institute_code(data):
                 "27797660003",
             ]
         ),
-        transf_name,
+        MEDICAL_INSTITUTE_TYPE,
     ] = 2
 
     to_find = [
@@ -338,8 +300,8 @@ def transform_medical_institute_code(data):
     ]
 
     data.loc[
-        data[col_name].str[:8].isin(to_find),
-        transf_name,
+        data[MEDICAL_INSTITUTE_CODE].str[:8].isin(to_find),
+        MEDICAL_INSTITUTE_TYPE,
     ] = 2
 
     # ----------------------------
@@ -382,28 +344,25 @@ def transform_medical_institute_code(data):
     ]
 
     data.loc[
-        data[col_name].str[:8].isin(to_find_koc),
-        transf_name,
+        data[MEDICAL_INSTITUTE_CODE].str[:8].isin(to_find_koc),
+        MEDICAL_INSTITUTE_TYPE,
     ] = 1
 
     # Drop column
-    data.drop([col_name], axis=1, inplace=True)
+    data.drop([MEDICAL_INSTITUTE_CODE], axis=1, inplace=True)
 
     return data
 
 
 def transform_extend_of_disease(data: pd.DataFrame) -> pd.DataFrame:
     """
-    Transform the OnemocneniKod column.
+    Transform the `EXTEND_OF_DISEASE` column.
     """
-    COL_NAME = "OnemocneniKod"
-    TRANSF_NAME = COL_NAME + "_Transformed"
-
     data = data.copy()
     UNKNOWN_VAL = 9
 
-    data[TRANSF_NAME] = (
-        data[COL_NAME]
+    data[EXTEND_OF_DISEASE] = (
+        data[EXTEND_OF_DISEASE]
         .fillna(UNKNOWN_VAL)
         .astype(float)
         .astype(int)
@@ -415,21 +374,18 @@ def transform_extend_of_disease(data: pd.DataFrame) -> pd.DataFrame:
         )
     )
 
-    data.drop([COL_NAME], axis=1, inplace=True)
     return data
 
 
 def transform_distant_metastasis(data: pd.DataFrame) -> pd.DataFrame:
     """
-    Transform the VzdalenaMetastaze column.
+    Transform column `DISTANT_METASTASIS` to number.
     """
-    col_name = "VzdalenaMetastaze"
-    transf_name = col_name + "_Transformed"
-
     data = data.copy()
-    data[transf_name] = data[col_name].fillna(-1).astype("int64")
+    data[DISTANT_METASTASIS] = (
+        data[DISTANT_METASTASIS].fillna(-1).astype("int64")
+    )
 
-    data.drop([col_name], axis=1, inplace=True)
     return data
 
 
@@ -506,16 +462,15 @@ def transform_dg_to_number(
 
     df = df.copy()
 
-    col_name = "DgKod"
-    transf_name = col_name + "_Encoded"
+    TRANSF_NAME = ICD_CODE_NAME + "_Transformed"
 
-    if transf_name in df.columns:
-        raise ValueError(f"{transf_name} already in columns")
+    if ICD_CODE_NAME not in df.columns:
+        raise ValueError(f"{ICD_CODE_NAME} not in columns")
 
     df = dg_code_divide_into_cols(df)
 
     # Combine into one number
-    df[transf_name] = df["DgKodLetter"] * 1000 + df["DgKodNumber"] * 10
+    df[TRANSF_NAME] = df["DgKodLetter"] * 1000 + df["DgKodNumber"] * 10
 
     df["DgKod_Specific_Encoded"] = df["DgKodSpecific"]
 
@@ -525,57 +480,43 @@ def transform_dg_to_number(
     )
 
     if drop:
-        df.drop([col_name], axis=1, inplace=True)
+        df.drop([ICD_CODE_NAME], axis=1, inplace=True)
 
     return df
 
 
-def transform_topografie_kod(data):
+def transform_topografie_kod(data: pd.DataFrame) -> pd.DataFrame:
     """
     Transform topografie kod to a number
     """
-    COL_NAME = "TopografieKod"
-    TRANSF_NAME = COL_NAME + "_Encoded"
-
-    assert COL_NAME in data.columns, f"Column {COL_NAME} not in columns"
-    assert (
-        TRANSF_NAME not in data.columns
-    ), f"Column {TRANSF_NAME} already in columns"
+    if TOPOGRAPHY_CODE not in data.columns:
+        raise ValueError(f"{TOPOGRAPHY_CODE} not in columns")
 
     # Remove first letter and convert to number
     # All topographies start with "C"
-    data[TRANSF_NAME] = data[COL_NAME].str[1:].astype("int64")
-
-    # Drop column
-    data.drop([COL_NAME], axis=1, inplace=True)
+    data[TOPOGRAPHY_CODE] = data[TOPOGRAPHY_CODE].str[1:].astype("int64")
 
     return data
 
 
-def transform_lateralita_kod(data):
+def transform_lateralita_kod(data: pd.DataFrame) -> pd.DataFrame:
     """
     Transform lateralita kod to a number
     """
-    COL_NAME = "LateralitaKod"
-    TRANSF_NAME = "LateralitaKod_Transformed"
-
-    assert COL_NAME in data.columns, f"Column {COL_NAME} not in columns"
-    assert (
-        TRANSF_NAME not in data.columns
-    ), f"Column {TRANSF_NAME} already in columns"
+    if LATERALITY_CODE not in data.columns:
+        raise ValueError(f"{LATERALITY_CODE} not in columns")
 
     # Transform to number
     UNKNOWN_VAL = 9
-    data[TRANSF_NAME] = data[COL_NAME].fillna(UNKNOWN_VAL).astype("int64")
+    data[LATERALITY_CODE] = (
+        data[LATERALITY_CODE].fillna(UNKNOWN_VAL).astype("int64")
+    )
 
     # Set 9 to -1
-    data.loc[data[TRANSF_NAME] == UNKNOWN_VAL, TRANSF_NAME] = -1
+    data.loc[data[LATERALITY_CODE] == UNKNOWN_VAL, LATERALITY_CODE] = -1
 
     # Set 4 to 0 -- means no laterality for the given tumor
-    data.loc[data[TRANSF_NAME] == 4, TRANSF_NAME] = 0
-
-    # Drop column
-    data.drop([COL_NAME], axis=1, inplace=True)
+    data.loc[data[LATERALITY_CODE] == 4, LATERALITY_CODE] = 0
 
     return data
 
@@ -587,20 +528,17 @@ def transform_morfologie_klasifikace_kod(data: pd.DataFrame) -> pd.DataFrame:
 
     data = data.copy()
 
-    data["MorfologieKlasifikaceKod"] = (
-        data["MorfologieKlasifikaceKod"].astype(float).astype("int64")
-    )
+    data[MORPHOLOGY_CODE] = data[MORPHOLOGY_CODE].astype(float).astype("int64")
 
-    UNKNOWN_HIST = 3333
-    data["MorfologieKlasifikaceKod"] = data["MorfologieKlasifikaceKod"].fillna(
-        UNKNOWN_HIST * 10 + 3
-    )
+    UNKNOWN_MORPHOLOGY = 33333
 
-    data["MorphologyHistologyCode"] = data["MorfologieKlasifikaceKod"] // 10
-    data["MorphologyBehaviorCode"] = data["MorfologieKlasifikaceKod"] % 10
+    data[MORPHOLOGY_CODE] = data[MORPHOLOGY_CODE].fillna(UNKNOWN_MORPHOLOGY)
+
+    data["MorphologyHistologyCode"] = data[MORPHOLOGY_CODE] // 10
+    data["MorphologyBehaviorCode"] = data[MORPHOLOGY_CODE] % 10
 
     data["MorphologyHistologyCode"] = data["MorphologyHistologyCode"].replace(
-        {UNKNOWN_HIST: -1}
+        {UNKNOWN_MORPHOLOGY // 10: -1}
     )
 
     # Replace behavior to -2 where morphology is unknown
@@ -616,15 +554,15 @@ def transform_morfologie_klasifikace_kod(data: pd.DataFrame) -> pd.DataFrame:
     # Code 9 -- Grade or differentiation not determined,
     # not stated or not applicable
     UNKNOWN_GRADING = 9
-    data["MorfologieGradingKod"] = (
-        data["MorfologieGradingKod"]
+    data[MORPHOLOGY_GRADING] = (
+        data[MORPHOLOGY_GRADING]
         .fillna(UNKNOWN_GRADING)
         .replace({UNKNOWN_GRADING: -1})
         .astype(float)
         .astype("int64")
     )
 
-    data.drop(columns="MorfologieKlasifikaceKod", inplace=True)
+    data.drop(columns=MORPHOLOGY_CODE, inplace=True)
 
     return data
 
@@ -795,20 +733,27 @@ def transform_morfologie_klasifikace_kod_to_hist_typ(
 
 
 def transform_stanoveni_to_num(df: pd.DataFrame) -> pd.DataFrame:
-    COLNAME = "StanoveniDgKod"
-    assert COLNAME in df.columns, f"{COLNAME} not in columns"
+    if CODE_ESTABLISHING_DG not in df.columns:
+        raise ValueError(f"{CODE_ESTABLISHING_DG} not in columns")
 
     df = df.copy()
 
-    df[COLNAME] = (
-        df[COLNAME].fillna("-1").astype(float).astype(int).replace({99: -1})
+    df[CODE_ESTABLISHING_DG] = (
+        df[CODE_ESTABLISHING_DG]
+        .fillna("-1")
+        .astype(float)
+        .astype(int)
+        # 99 means unknown
+        .replace({99: -1})
     )
 
     return df
 
 
 def transform_stanoveni_to_categories(df: pd.DataFrame) -> pd.DataFrame:
-    assert "StanoveniDgKod" in df.columns, "StanoveniDgKod not in columns"
+    assert (
+        CODE_ESTABLISHING_DG in df.columns
+    ), f"{CODE_ESTABLISHING_DG} not in columns"
 
     suffix = "_Transformed"
 
@@ -835,15 +780,15 @@ def transform_stanoveni_to_categories(df: pd.DataFrame) -> pd.DataFrame:
 
     # For each row, determine the categories
     for i, row in out.iterrows():
-        if row["StanoveniDgKod"] == "0":
+        if row[CODE_ESTABLISHING_DG] == "0":
             out.loc[i, "Neznamo"] = 1
             continue
 
-        if row["StanoveniDgKod"] == "00":
+        if row[CODE_ESTABLISHING_DG] == "00":
             out.loc[i, "KlinickyJasne"] = 1
             continue
 
-        stanoveni_int = int(row["StanoveniDgKod"])
+        stanoveni_int = int(row[CODE_ESTABLISHING_DG])
         for code, col in stanoveni_list:
             if stanoveni_int == 0:
                 break
@@ -853,7 +798,7 @@ def transform_stanoveni_to_categories(df: pd.DataFrame) -> pd.DataFrame:
                 stanoveni_int -= code
 
     # Drop column
-    out.drop(["StanoveniDgKod"], axis=1, inplace=True)
+    out.drop([CODE_ESTABLISHING_DG], axis=1, inplace=True)
 
     return out
 
@@ -862,32 +807,31 @@ def transform_date(data: pd.DataFrame, drop: bool = False) -> pd.DataFrame:
     """
     Transform date to a number. 1 is the oldest date, 2 is the second oldest, etc.
     """
-    COL_NAME = "DatumStanoveniDg"
-    TRANSF_NAME = COL_NAME + "_Encoded"
+    if PATIENT_ID_NAME not in data.columns:
+        raise ValueError(f"{PATIENT_ID_NAME} not in columns")
 
-    assert PATIENT_ID_NAME in data.columns
-    assert COL_NAME in data.columns
-    assert TRANSF_NAME not in data.columns
+    if DATE_ESTABLISHING_DG not in data.columns:
+        raise ValueError(f"{DATE_ESTABLISHING_DG} not in columns")
 
     data = data.copy()
 
     # Convert the date column to datetime if it's not already
-    data[COL_NAME] = pd.to_datetime(data[COL_NAME])
+    data[DATE_ESTABLISHING_DG] = pd.to_datetime(data[DATE_ESTABLISHING_DG])
 
-    data[TRANSF_NAME] = -1
+    data[NOVELTY_RANK] = -1
 
     # Group by patient and rank entries within each group
-    # data.loc[data["AlgoFiltered"] == 0, transf_name] = (
+    # data.loc[data["AlgoFiltered"] == 0, NOVELTY_RANK] = (
     #     data.loc[data["AlgoFiltered"] == 0, :]
-    data[TRANSF_NAME] = (
-        data.groupby(PATIENT_ID_NAME)[COL_NAME]
+    data[NOVELTY_RANK] = (
+        data.groupby(PATIENT_ID_NAME)[DATE_ESTABLISHING_DG]
         .rank(method="average", ascending=True)
         .astype("int64")
     )
 
     # Drop column
     if drop:
-        data.drop([COL_NAME], axis=1, inplace=True)
+        data.drop([DATE_ESTABLISHING_DG], axis=1, inplace=True)
 
     return data
 
@@ -914,7 +858,9 @@ def count_unknown_values(
     )
 
     df = df.copy()
-    df["UnknownCount"] = df[cols_to_take].apply(lambda row: sum(row < 0), axis=1)
+    df["UnknownCount"] = df[cols_to_take].apply(
+        lambda row: sum(row < 0), axis=1
+    )
 
     return df
 
@@ -923,14 +869,12 @@ def count_records_per_patient(data: pd.DataFrame) -> pd.DataFrame:
     if ALGO_FILTERED_COLUMN not in data.columns:
         raise ValueError(f"{ALGO_FILTERED_COLUMN} not in columns")
 
-    COL_NAME = "RecordCount"
-
     data = data.copy()
 
     rec_count = (
         (data[data[ALGO_FILTERED_COLUMN] == 0].groupby(PATIENT_ID_NAME).size())
         .reset_index()
-        .rename({0: COL_NAME}, axis=1)
+        .rename({0: RECORD_COUNT_NAME}, axis=1)
     )
 
     data = data.merge(
@@ -943,7 +887,7 @@ def count_records_per_patient(data: pd.DataFrame) -> pd.DataFrame:
 
 
 def transform_pn_examination_cols(df: pd.DataFrame) -> pd.DataFrame:
-    COL_NAMES = ["PNVysetreni", "PNVysetreniPozitivnich"]
+    COL_NAMES = [PN_EXAMINATION, PN_EXAMINATION_POS]
 
     df = df.copy()
     df[COL_NAMES] = df[COL_NAMES].fillna(-1).astype(float).astype("int64")
@@ -955,8 +899,8 @@ def fill_nan_to_zero(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
 
     to_zero = [
-        "ZalozenoDavkou",
-        "TypPece",
+        CREATED_WITH_BATCH,
+        TYPE_OF_CARE,
     ]
 
     df[to_zero] = df[to_zero].fillna(0).astype(float).astype("int64")
@@ -971,10 +915,10 @@ def cols_to_int(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
 
     TO_INT = [
-        "RokStanoveniDg",
-        "vyporadani_final",
-        "HlaseniIdDtb",
-        "PacientId",
+        YEAR_ESTABLISHING_DG,
+        PREDICTED_COLUMN,
+        RECORD_ID_NAME,
+        PATIENT_ID_NAME,
     ]
     df[TO_INT] = df[TO_INT].astype(float).astype("int64")
 
@@ -984,6 +928,7 @@ def cols_to_int(df: pd.DataFrame) -> pd.DataFrame:
 def transform_sentinel_lymph_node(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
 
-    COL_NAME = "SentinelovaMizniUzlinaKod"
-    df[COL_NAME] = df[COL_NAME].replace("X", -1).fillna(-2).astype("int64")
+    df[SENTINEL_LYMPH_NODE] = (
+        df[SENTINEL_LYMPH_NODE].replace("X", -1).fillna(-2).astype("int64")
+    )
     return df
