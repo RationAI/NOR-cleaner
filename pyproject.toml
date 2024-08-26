@@ -1,0 +1,20 @@
+[project]
+name = "NOR-Cleaner"
+version = "0.1.0"
+authors = [
+    {name = "Jozef Kraus"},
+]
+readme = "README.md"
+requires-python = ">=3.10"
+
+dependencies = [
+    "shap",
+    "pandas",
+    "numpy",
+    "matplotlib",
+    "scikit-learn",
+    "xgboost",
+]
+
+[tool.setuptools]
+py-modules = []

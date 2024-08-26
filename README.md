@@ -4,8 +4,7 @@ Bachelor's thesis about this project is available [here](https://is.muni.cz/th/l
 
 ## Requirements
 - Python 3.11 or newer
-- libraries listed in `requirements.txt`
-  - `pip install -r requirements.txt`
+- libraries listed in `pyproject.toml` (install with `pip install .`)
 
 ## Usage
 ### Data preparation
