@@ -2,7 +2,6 @@
 File for data preparation
 """
 
-import datetime
 import logging
 import pickle
 from functools import partial
@@ -33,12 +32,7 @@ from data_preparation.feature_transformation import (
 )
 from data_preparation.translate_english import df_english_translation
 from lib.column_names import PREDICTED_COLUMN_ENG
-from lib.dataset_names import (
-    DATA_DIR,
-    DATA_PREPROCESSED_FILENAME,
-    DATASET_LIST,
-    DatasetType,
-)
+from lib.dataset_names import DATA_DIR, DATA_PREPROCESSED_FILENAME, DatasetType
 from lib.load_dataset import get_original_dataset
 
 
@@ -82,9 +76,7 @@ def _save_data(data: pd.DataFrame, dataset_type: DatasetType) -> None:
 
     with open(data_preprocessed, "wb") as f:
         pickle.dump(data, f)
-        print_str = f"Saved data to {data_preprocessed}"
-        print_str += f" at {datetime.datetime.now():%H:%M:%S, %d.%m.%Y}"
-        print(print_str)
+        logging.info(f"Data saved to {data_preprocessed}")
 
 
 def prepare_data(dataset_type: DatasetType) -> pd.DataFrame:
@@ -98,10 +90,14 @@ def prepare_data(dataset_type: DatasetType) -> pd.DataFrame:
     check_columns(data)
     logging.info("All necessary columns are present.")
 
-    logging.info("Algorithmic filtering of ICD-10 codes. It may take a while...")
+    logging.info(
+        "Algorithmic filtering of ICD-10 codes. It may take a while..."
+    )
     data, dropped_record_ids = algorithmic_filtering_icd_10(data)
     logging.info("Algorithmic filtering done.")
-    logging.info(f"Number of algorithmically filtered records: {len(dropped_record_ids)}")
+    logging.info(
+        f"Number of algorithmically filtered records: {len(dropped_record_ids)}"
+    )
 
     # Apply all transformations
     logging.info("Applying all transformations...")
