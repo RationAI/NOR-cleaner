@@ -97,8 +97,8 @@ def _drop_records_with_lower_score(
             The set of ICD-10 codes to check.
 
     Returns:
-        list[int]
-            The list of record IDs to drop.
+        tuple[list[int], list[int]]
+            The list of record IDs to drop and the list of record IDs left out.
     """
     to_drop = []
 
@@ -252,7 +252,7 @@ def _update_prediction(df: pd.DataFrame) -> pd.DataFrame:
     AlgoFiltering column must be present in the DataFrame.
     If AlgoFiltering == 1 and PREDICTED_COLUMN == 1, then set
     the PREDICTED_COLUMN for the record which was not filtered to 1
-    preserve the original prediction of the ICD-10 code.
+    to preserve the original prediction of the record.
 
     Parameters:
         df: pd.DataFrame
