@@ -6,7 +6,7 @@ from sklearn.model_selection import train_test_split
 
 from lib.column_names import (
     PATIENT_ID_NAME_ENG,
-    PREDICTED_COLUMN_ENG,
+    TARGET_COLUMN_ENG,
     RECORD_ID_NAME_ENG,
 )
 from lib.load_dataset import get_ready_data
@@ -129,8 +129,8 @@ def get_X_y(
     """
     data_ready = getter()
 
-    X = data_ready.drop(columns=[PREDICTED_COLUMN_ENG])
-    y = data_ready[PREDICTED_COLUMN_ENG]
+    X = data_ready.drop(columns=[TARGET_COLUMN_ENG])
+    y = data_ready[TARGET_COLUMN_ENG]
 
     return X, y
 

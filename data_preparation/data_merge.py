@@ -17,7 +17,7 @@ from data_preparation.merged_transformation import (
     init_fillna_dict,
     records_equal,
 )
-from lib.column_names import PREDICTED_COLUMN_ENG
+from lib.column_names import TARGET_COLUMN_ENG
 from lib.dataset_names import DatasetType, get_dataset_directory
 from lib.load_dataset import get_ready_data
 from lib.merge_records import drop_multi_cols, merge_groups_each_row
@@ -117,8 +117,8 @@ def prepare_merged_data(dataset_type: DatasetType) -> None:
         & (X_reduced["RecordCount"] <= TAKE_RANGE[1])
     ]
 
-    y_reduced = X_reduced[PREDICTED_COLUMN_ENG]
-    X_reduced.drop(columns=PREDICTED_COLUMN_ENG, inplace=True)
+    y_reduced = X_reduced[TARGET_COLUMN_ENG]
+    X_reduced.drop(columns=TARGET_COLUMN_ENG, inplace=True)
 
     print(
         len(X) - len(X_reduced), "rows removed after filtering by RecordCount."
@@ -140,13 +140,13 @@ def prepare_merged_data(dataset_type: DatasetType) -> None:
         fillna=FILLNA_DICT,
     ).sort_index()
 
-    y_merged = X_merged[PREDICTED_COLUMN_ENG, 0].astype(int)
+    y_merged = X_merged[TARGET_COLUMN_ENG, 0].astype(int)
     record_ids = X_merged["RecordId"]
     patient_ids = X_merged["PatientId", 0].copy()
 
     X_merged = drop_multi_cols(X_merged, MULTI_COLS_TO_DROP, N_MERGED)
     # Drop column to predict
-    X_merged.drop(columns=[PREDICTED_COLUMN_ENG], inplace=True)
+    X_merged.drop(columns=[TARGET_COLUMN_ENG], inplace=True)
 
     # Transform float columns to int
     float_cols = X_merged.select_dtypes(include=float).columns

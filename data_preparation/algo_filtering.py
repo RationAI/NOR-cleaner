@@ -14,7 +14,7 @@ from lib.column_names import (
     PATIENT_ID_NAME,
     RECORD_ID_NAME,
     TYPE_OF_CARE,
-    PREDICTED_COLUMN,
+    TARGET_COLUMN,
 )
 
 # Path to the file with ICD-10 ranges
@@ -53,12 +53,6 @@ def algorithmic_filtering_icd_10(
     to_drop_records, _ = _drop_records_with_lower_score(
         df, icd_range_3, icd_range_4
     )
-
-    # # Set the records that were left out as 1
-    # df.loc[df[RECORD_ID_NAME].isin(records_left_out), PREDICTED_COLUMN] = 1
-
-    # # Drop the records with the lower score
-    # df = df[~df[RECORD_ID_NAME].isin(to_drop_records)]
 
     # Tag the records which were filtered
     df["AlgoFiltered"] = 0
@@ -174,8 +168,8 @@ def _give_scores(df: pd.DataFrame) -> pd.Series:
     )
 
     predicted_column_score = (
-        df_for_score[PREDICTED_COLUMN]
-        if PREDICTED_COLUMN in df_for_score.columns
+        df_for_score[TARGET_COLUMN]
+        if TARGET_COLUMN in df_for_score.columns
         else 0
     )
 
@@ -305,6 +299,6 @@ def _update_prediction(df: pd.DataFrame) -> pd.DataFrame:
             )
 
         # Set the PREDICTED_COLUMN to 1
-        df.loc[record.index, PREDICTED_COLUMN] = 1
+        df.loc[record.index, TARGET_COLUMN] = 1
 
     return df

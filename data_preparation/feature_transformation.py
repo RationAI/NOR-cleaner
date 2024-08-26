@@ -916,7 +916,7 @@ def cols_to_int(df: pd.DataFrame) -> pd.DataFrame:
 
     TO_INT = [
         YEAR_ESTABLISHING_DG,
-        PREDICTED_COLUMN,
+        TARGET_COLUMN,
         RECORD_ID_NAME,
         PATIENT_ID_NAME,
     ]

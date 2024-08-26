@@ -30,7 +30,7 @@ REQUIRED_COLUMNS : dict[VariableName, ColumnName] = {
     "PT": "PT",
     "PN": "PN",
     "PM": "PM",
-    "PREDICTED_COLUMN": "vyporadani_final",
+    "TARGET_COLUMN": "vyporadani_final",
 }
 
 # Set variables for the column names
@@ -59,7 +59,7 @@ M = REQUIRED_COLUMNS["M"]
 PT = REQUIRED_COLUMNS["PT"]
 PN = REQUIRED_COLUMNS["PN"]
 PM = REQUIRED_COLUMNS["PM"]
-PREDICTED_COLUMN = REQUIRED_COLUMNS["PREDICTED_COLUMN"]
+TARGET_COLUMN = REQUIRED_COLUMNS["TARGET_COLUMN"]
 
 # Translations of the column names from Czech to English
 PATIENT_ID_NAME_ENG = "PatientId"
@@ -78,4 +78,4 @@ EXTEND_OF_DISEASE_ENG = "ExtendOfDisease"
 DISTANT_METASTASIS_ENG = "DistantMetastasis"
 TOPOGRAPHY_CODE_ENG = "Topography"
 LATERALITY_CODE_ENG = "Laterality"
-PREDICTED_COLUMN_ENG = "FinalDecision"
+TARGET_COLUMN_ENG = "FinalDecision"
