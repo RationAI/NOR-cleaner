@@ -49,16 +49,9 @@ def algorithmic_filtering_icd_10(
 
     icd_range_3, icd_range_4 = process_icd_ranges_file(ICD_RANGES_FILE)
 
-    # Function to get the size of the group as a column
-    to_check_patients = (
-        df.groupby([PATIENT_ID_NAME, "icd_three"])
-        .size()
-        .reset_index(name="count")[PATIENT_ID_NAME]
-    )
-
     # First filter the records with ICD-10 codes with 3 characters
     to_drop_records, _ = _drop_records_with_lower_score(
-        df, to_check_patients, icd_range_3, icd_range_4
+        df, icd_range_3, icd_range_4
     )
 
     # # Set the records that were left out as 1
@@ -83,7 +76,6 @@ def algorithmic_filtering_icd_10(
 
 def _drop_records_with_lower_score(
     df: pd.DataFrame,
-    to_check_ids: pd.Series,
     icd_range_3: set[str],
     icd_range_4: set[str],
 ) -> tuple[list[int], list[int]]:
@@ -91,10 +83,14 @@ def _drop_records_with_lower_score(
     Drop the records with the lower score based on the ICD-10 code ranges.
 
     Parameters:
-        to_check: pd.DataFrame
-            The DataFrame with the records to check.
-        icd_range: set[str]
-            The set of ICD-10 codes to check.
+        df: pd.DataFrame
+            The DataFrame with the records.
+
+        icd_range_3: set[str]
+            The set of ICD-10 codes with 3 characters.
+
+        icd_range_4: set[str]
+            The set of ICD-10 codes with 4 characters.
 
     Returns:
         tuple[list[int], list[int]]
@@ -102,10 +98,9 @@ def _drop_records_with_lower_score(
     """
     to_drop = []
 
-    to_check_df = df[df[PATIENT_ID_NAME].isin(to_check_ids)]
     record_ids_left_out = []
 
-    for _, group in to_check_df.groupby(PATIENT_ID_NAME):
+    for _, group in df.groupby(PATIENT_ID_NAME):
         # Get unique ICD-10 codes
         codes_three = set(group["icd_three"].unique())
         codes_four = set(group[ICD_CODE_NAME].unique())
