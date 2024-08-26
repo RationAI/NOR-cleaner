@@ -4,10 +4,14 @@ File for preparing data for the model
 
 # Parse --which argument from the command line
 import argparse
+import logging
 
 from data_preparation.data_merge import prepare_merged_data
 from data_preparation.data_preparation import prepare_data
 from lib.dataset_names import DATASET_LIST
+
+# Set up the logger
+logging.basicConfig(level=logging.INFO)
 
 parser = argparse.ArgumentParser()
 parser.add_argument(

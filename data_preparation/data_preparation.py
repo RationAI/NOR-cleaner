@@ -1,7 +1,9 @@
 """
 File for data preparation
 """
+
 import datetime
+import logging
 import pickle
 from functools import partial
 
@@ -90,18 +92,21 @@ def prepare_data(dataset_type: DatasetType) -> pd.DataFrame:
     Prepare the data for the model
     """
     data = get_original_dataset(which=dataset_type)
-    print(f"Data of type `{dataset_type}` loaded, shape:", data.shape)
+    logging.info(f"Data of type `{dataset_type}` loaded, shape: {data.shape}")
 
     # Check that all necessary columns are present
     check_columns(data)
-    print("All necessary columns are present.")
+    logging.info("All necessary columns are present.")
 
+    logging.info("Algorithmic filtering of ICD-10 codes. It may take a while...")
     data, dropped_record_ids = algorithmic_filtering_icd_10(data)
-    print(
-        "Number of algorithmically filtered records:", len(dropped_record_ids)
-    )
+    logging.info("Algorithmic filtering done.")
+    logging.info(f"Number of algorithmically filtered records: {len(dropped_record_ids)}")
 
+    # Apply all transformations
+    logging.info("Applying all transformations...")
     data = all_transformations(data)
+    logging.info("All transformations applied.")
 
     # Move vyporadani_final to the end
     cols = list(data.columns)
@@ -115,7 +120,7 @@ def prepare_data(dataset_type: DatasetType) -> pd.DataFrame:
 
     # Check that there are no object columns
     if not data.select_dtypes(include="object").columns.empty:
-        raise ValueError(
+        raise TypeError(
             f"Object columns: {data.select_dtypes(include='object').columns}"
         )
 
