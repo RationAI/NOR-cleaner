@@ -15,7 +15,7 @@ def check_columns(df: pd.DataFrame) -> None:
         df: pd.DataFrame
             The DataFrame to check.
     """
-    missing_columns = [col for col in REQUIRED_COLUMNS if col not in df.columns]
+    missing_columns = [col for col in REQUIRED_COLUMNS.values() if col not in df.columns]
     if missing_columns:
         raise ValueError(
             f"Missing columns: {missing_columns}. Add them to the dataset."

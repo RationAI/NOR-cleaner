@@ -2,7 +2,9 @@
 
 # Column names in the dataset (Czech)
 # These columns have to be in the dataset
-REQUIRED_COLUMNS : dict[str, str] = {
+VariableName = str
+ColumnName = str
+REQUIRED_COLUMNS : dict[VariableName, ColumnName] = {
     "PATIENT_ID_NAME": "PacientId",
     "RECORD_ID_NAME": "HlaseniIdDtb",
     "ICD_CODE_NAME": "DgKod",

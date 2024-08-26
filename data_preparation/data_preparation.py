@@ -94,6 +94,7 @@ def prepare_data(dataset_type: DatasetType) -> pd.DataFrame:
 
     # Check that all necessary columns are present
     check_columns(data)
+    print("All necessary columns are present.")
 
     data, dropped_record_ids = algorithmic_filtering_icd_10(data)
     print(
