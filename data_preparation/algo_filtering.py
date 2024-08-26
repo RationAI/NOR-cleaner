@@ -14,7 +14,7 @@ from lib.column_names import (
     PATIENT_ID_NAME,
     RECORD_ID_NAME,
     TYPE_OF_CARE,
-    PREDICTED_COLUMN
+    PREDICTED_COLUMN,
 )
 
 # Path to the file with ICD-10 ranges
@@ -128,15 +128,17 @@ def _filter_by_score(
     column: str,
     code: str,
 ) -> None:
-    best_score = group[group[column] == code]["scores"].max()
-    best_score_id = group[
-        (group["scores"] == best_score) & (group[column] == code)
-    ][RECORD_ID_NAME].values[0]
 
-    to_add_to_drop = group[
-        (group[column] == code)
-        & (group[RECORD_ID_NAME] != best_score_id)
-        & (group["scores"] <= best_score)
+    icd_group = group[group[column] == code]
+
+    best_score = icd_group["scores"].max()
+    best_score_id = icd_group[icd_group["scores"] == best_score][
+        RECORD_ID_NAME
+    ].values[0]
+
+    to_add_to_drop = icd_group[
+        (icd_group[RECORD_ID_NAME] != best_score_id)
+        & (icd_group["scores"] <= best_score)
     ][RECORD_ID_NAME].tolist()
 
     to_drop.extend(to_add_to_drop)
