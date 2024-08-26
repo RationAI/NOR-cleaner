@@ -3,6 +3,7 @@ Drop Columns
 """
 
 import pandas as pd
+import logging
 
 # fmt: off
 NULL_COLUMNS = [
@@ -116,11 +117,16 @@ def drop_columns(data: pd.DataFrame) -> pd.DataFrame:
         + [col for col in YEAR_2022_COLS if col in data.columns]
     )
 
-    # Do not drop PacientId since it is needed for grouping
-    data_columns_dropped = data.drop(
-        cols_to_drop,
-        axis=1,
-    )
+    # Check if all columns are in the dataset
+    filtered_cols = []
+    for col in cols_to_drop:
+        if col not in data.columns:
+            logging.warning(f"Column {col} not in the dataset")
+        else:
+            filtered_cols.append(col)
 
-    print("Shape after dropping columns:", data_columns_dropped.shape)
+    data_columns_dropped = data.drop(columns=filtered_cols)
+
+    logging.info(f"Shape after dropping columns: {data_columns_dropped.shape}")
+
     return data_columns_dropped
