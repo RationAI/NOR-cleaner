@@ -2,7 +2,6 @@ from functools import partial
 from typing import Callable
 
 import pandas as pd
-from IPython.display import HTML, display
 from sklearn.model_selection import train_test_split
 
 from lib.column_names import (
@@ -134,19 +133,6 @@ def get_X_y(
     y = data_ready[PREDICTED_COLUMN_ENG]
 
     return X, y
-
-
-def pretty_print_columns_notebook(df: pd.DataFrame):
-    # Print columns with types
-    div = "<div>"
-    div += "<span style='font-size: 16px'>"
-    div += f"<pre>{'Column': <40}{'Type'}</pre>"
-    div += "<pre>"
-    for col in df.columns:
-        # Align the columns
-        div += f"{str(col): <40}{str(df[col].dtype)} <br>"
-    div += "</pre></span></div>"
-    display(HTML(div))
 
 
 def get_split_data(
