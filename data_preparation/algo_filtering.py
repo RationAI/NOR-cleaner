@@ -6,14 +6,16 @@ function.
 """
 
 import pandas as pd
+
+import data_preparation.feature_transformation as data_prep
+from data_preparation.column_names import MEDICAL_INSTITUTE_TYPE
 from lib.column_names import (
     ICD_CODE_NAME,
     PATIENT_ID_NAME,
-    PREDICTED_COLUMN,
     RECORD_ID_NAME,
+    TYPE_OF_CARE,
+    PREDICTED_COLUMN
 )
-
-import data_preparation.feature_transformation as data_prep
 
 # Path to the file with ICD-10 ranges
 ICD_RANGES_FILE = "data_preparation/algo_icd_ranges.txt"
@@ -170,11 +172,8 @@ def _give_scores(df: pd.DataFrame) -> pd.Series:
     """
     df_for_score = _df_transform_for_scoring(df)
 
-    medical_institute = "DiagnostikujiciZZTyp"
-    type_of_care = "TypPece"
-
-    df_for_score[type_of_care] = (
-        df_for_score[type_of_care].fillna(0).astype(float).astype("int64")
+    df_for_score[TYPE_OF_CARE] = (
+        df_for_score[TYPE_OF_CARE].fillna(0).astype(float).astype("int64")
     )
 
     predicted_column_score = (
@@ -189,8 +188,8 @@ def _give_scores(df: pd.DataFrame) -> pd.Series:
         + df_for_score["TNM_Stadium_Range_Known"] * 10**5
         + df_for_score["TNM_Count"] * 10**4
         + df_for_score["Grading_Known"] * 10**3
-        + df_for_score[medical_institute] * 10**2
-        + df_for_score[type_of_care] * 10**1
+        + df_for_score[MEDICAL_INSTITUTE_TYPE] * 10**2
+        + df_for_score[TYPE_OF_CARE] * 10**1
         + predicted_column_score * 10**0
     )
 
