@@ -11,7 +11,7 @@ from data_preparation.data_preparation import prepare_data
 from lib.dataset_names import DATASET_LIST
 
 # Set up the logger
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(message)s")
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
