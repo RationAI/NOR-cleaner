@@ -24,7 +24,7 @@ def transform_replace_tnm_with_ptnm(
         raise ValueError(f"{name} is not {T}, {N} or {M}")
 
     if name not in df.columns:
-        raise ValueError(f"{name} not in columns")
+        raise KeyError(f"{name} not in columns")
 
     df = df.copy()
 
@@ -52,7 +52,7 @@ def transform_tnm(df: pd.DataFrame, name: str) -> pd.DataFrame:
             The name of the column to transform.
     """
     if name not in df.columns:
-        raise ValueError(f"{name} not in columns")
+        raise KeyError(f"{name} not in columns")
 
     df = df.copy()
 
@@ -181,7 +181,7 @@ def transform_medical_institute_code(data):
     Transform DiagnostikujiciZdravotnickeZarizeniKod to number
     """
     if MEDICAL_INSTITUTE_CODE not in data.columns:
-        raise ValueError(f"{MEDICAL_INSTITUTE_CODE} not in columns")
+        raise KeyError(f"{MEDICAL_INSTITUTE_CODE} not in columns")
 
     data[MEDICAL_INSTITUTE_CODE] = data[MEDICAL_INSTITUTE_CODE].astype(
         "string"
@@ -465,7 +465,7 @@ def transform_dg_to_number(
     TRANSF_NAME = ICD_CODE_NAME + "_Transformed"
 
     if ICD_CODE_NAME not in df.columns:
-        raise ValueError(f"{ICD_CODE_NAME} not in columns")
+        raise KeyError(f"{ICD_CODE_NAME} not in columns")
 
     df = dg_code_divide_into_cols(df)
 
@@ -490,7 +490,7 @@ def transform_topografie_kod(data: pd.DataFrame) -> pd.DataFrame:
     Transform topografie kod to a number
     """
     if TOPOGRAPHY_CODE not in data.columns:
-        raise ValueError(f"{TOPOGRAPHY_CODE} not in columns")
+        raise KeyError(f"{TOPOGRAPHY_CODE} not in columns")
 
     # Remove first letter and convert to number
     # All topographies start with "C"
@@ -504,7 +504,7 @@ def transform_lateralita_kod(data: pd.DataFrame) -> pd.DataFrame:
     Transform lateralita kod to a number
     """
     if LATERALITY_CODE not in data.columns:
-        raise ValueError(f"{LATERALITY_CODE} not in columns")
+        raise KeyError(f"{LATERALITY_CODE} not in columns")
 
     # Transform to number
     UNKNOWN_VAL = 9
@@ -734,7 +734,7 @@ def transform_morfologie_klasifikace_kod_to_hist_typ(
 
 def transform_stanoveni_to_num(df: pd.DataFrame) -> pd.DataFrame:
     if CODE_ESTABLISHING_DG not in df.columns:
-        raise ValueError(f"{CODE_ESTABLISHING_DG} not in columns")
+        raise KeyError(f"{CODE_ESTABLISHING_DG} not in columns")
 
     df = df.copy()
 
@@ -808,10 +808,10 @@ def transform_date(data: pd.DataFrame, drop: bool = False) -> pd.DataFrame:
     Transform date to a number. 1 is the oldest date, 2 is the second oldest, etc.
     """
     if PATIENT_ID_NAME not in data.columns:
-        raise ValueError(f"{PATIENT_ID_NAME} not in columns")
+        raise KeyError(f"{PATIENT_ID_NAME} not in columns")
 
     if DATE_ESTABLISHING_DG not in data.columns:
-        raise ValueError(f"{DATE_ESTABLISHING_DG} not in columns")
+        raise KeyError(f"{DATE_ESTABLISHING_DG} not in columns")
 
     data = data.copy()
 
@@ -867,7 +867,7 @@ def count_unknown_values(
 
 def count_records_per_patient(data: pd.DataFrame) -> pd.DataFrame:
     if ALGO_FILTERED_COLUMN not in data.columns:
-        raise ValueError(f"{ALGO_FILTERED_COLUMN} not in columns")
+        raise KeyError(f"{ALGO_FILTERED_COLUMN} not in columns")
 
     data = data.copy()
 
