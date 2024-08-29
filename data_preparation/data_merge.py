@@ -223,11 +223,6 @@ if __name__ == "__main__":
     MERGED_FILE_PATH = f"{get_dataset_directory(args.dataset_type)}/{MERGED_DIR}/merged_data.csv"
     merged_data = pd.read_csv(MERGED_FILE_PATH)
 
-    for col in merged_data.columns:
-        print(col)
-
     X_merged, y_merged, record_ids, patient_ids = unfold_merged_data(
         merged_data
     )
-
-    print(record_ids.head())
