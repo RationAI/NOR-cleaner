@@ -3,10 +3,10 @@ File for parsing datasets into DataFrames.
 """
 
 import pickle
-import warnings
 
 import pandas as pd
 
+from data_preparation.fold_unfold_merged_data import unfold_merged_data
 from lib.dataset_names import (
     DATA_PREPROCESSED_FILENAME,
     DATASET_LIST,
@@ -93,6 +93,25 @@ def get_ready_data(which: DatasetType) -> pd.DataFrame:
 
     dataset_dir = get_dataset_directory(which)
     return unpickle_data(f"{dataset_dir}/{DATA_PREPROCESSED_FILENAME}")
+
+
+def load_merged_data_from_csv(
+    path: str,
+) -> tuple[pd.DataFrame, pd.Series, pd.DataFrame, pd.Series]:
+    """
+    Load the merged data from CSV files.
+
+    Parameters:
+       path: str
+              Path to the merged data CSV file.
+
+    Returns:
+        tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.Series]:
+            Tuple of X_merged, y_merged, report_ids and patient_ids.
+    """
+    merged_data = pd.read_csv(path)
+
+    return unfold_merged_data(merged_data)
 
 
 def load_merged_data(
