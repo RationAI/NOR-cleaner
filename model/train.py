@@ -11,6 +11,20 @@ ModelType = Any
 
 
 def train(model: ModelType, path: str) -> ModelType:
+    """
+    Train the model using the dataset from the given path.
+
+    Parameters:
+        model: ModelType
+            The model to train
+
+        path: str
+            The path to the dataset
+
+    Returns:
+        ModelType
+            The trained model
+    """
 
     # TODO: Make loading dataset from CSV file
     # For now, load the dataset from the pickle file
@@ -28,10 +42,9 @@ def train(model: ModelType, path: str) -> ModelType:
     return model
 
 
-def train_save_model(model: ModelType, save_path: str) -> None:
-
+def train_save_model(model: ModelType, data_path: str, save_path: str) -> None:
     # Train the model
-    model = train(model, save_path)
+    model = train(model, data_path)
 
     # Save the model
     model.save_model(save_path)
