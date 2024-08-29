@@ -12,7 +12,7 @@ from ttkbootstrap.constants import *
 import lib.dataset_names as dataset_names
 from gui.error_box import ErrorBox
 from model.classifier import SELECTED_MODEL
-from model.train import train_save_model
+from model.train import train, ModelType
 
 logger = logging.getLogger(__name__)
 
@@ -118,19 +118,44 @@ class TrainWindow(ttk.Frame):
         )
         if path:
             self.save_model_path_var.set(path)
+        
+    def _valid_path_parent(self, path: str) -> None:
+        """
+        Check if every parent directory in the path exists
+        """
+        for directory in pathlib.Path(path).parents:
+            if not directory.exists():
+                raise FileNotFoundError(f"Directory does not exist: {directory}")
+        
+    def _check_save_path(self, save_path: str) -> None:
+        self._valid_path_parent(save_path)
+        
+        if not save_path.endswith(".json"):
+            raise ValueError("Model must be saved as a JSON file")
 
     def on_train(self):
         """Train the model and save it"""
+        try:
+            self._train()
+        except Exception as e:
+            logger.error(e)
+            ErrorBox.from_exception(e)
+
+    def _train(self):
         save_path = self.save_model_path_var.get()
+        self._check_save_path(save_path)
+
         data_path = self.data_path_var.get()
         logger.info(f"Training model with data at {data_path}")
+        model = train(SELECTED_MODEL, data_path)
+        logger.info("Model trained successfully")
+        self.save_model(model, save_path)
+
+    def save_model(self, model: ModelType, save_path: str) -> None:
+        """Save the model to the given path"""
         logger.info(f"Saving model to {save_path}")
-        try:
-            train_save_model(SELECTED_MODEL, data_path, save_path)
-            logger.info("Model trained and saved successfully")
-        except Exception as e:
-            logger.exception(e)
-            ErrorBox.from_exception(e)
+        model.save_model(save_path)
+        logger.info("Model saved successfully")
 
 
 if __name__ == "__main__":
