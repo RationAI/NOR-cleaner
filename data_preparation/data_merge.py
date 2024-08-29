@@ -7,7 +7,14 @@ from pathlib import Path
 import pandas as pd
 
 import lib.utils
-from data_preparation.column_names import ALGO_FILTERED_COLUMN
+from data_preparation.column_names import (
+    ALGO_FILTERED_COLUMN,
+    RECORD_COUNT_NAME,
+)
+from data_preparation.fold_unfold_merged_data import (
+    fold_merged_data,
+    unfold_merged_data,
+)
 from data_preparation.merged_transformation import (
     add_cols_equal,
     any_c76_c80_check,
@@ -17,11 +24,14 @@ from data_preparation.merged_transformation import (
     init_fillna_dict,
     records_equal,
 )
-from lib.column_names import TARGET_COLUMN_ENG
-from lib.dataset_names import DatasetType, get_dataset_directory
+from lib.column_names import (
+    PATIENT_ID_NAME_ENG,
+    RECORD_ID_NAME_ENG,
+    TARGET_COLUMN_ENG,
+)
+from lib.dataset_names import DATASET_LIST, DatasetType, get_dataset_directory
 from lib.load_dataset import get_ready_data
 from lib.merge_records import drop_multi_cols, merge_groups_each_row
-
 
 # Take patients with RecordCount in the range
 TAKE_RANGE = (2, 3)
@@ -88,12 +98,13 @@ def all_merged_transformations(df: pd.DataFrame) -> pd.DataFrame:
 
 
 # Save the data
-X_MERGED_FILENAME = "X_merged.pkl"
-PREDS_FILENAME = "y_merged.pkl"
-REPORT_IDS_FILENAME = "record_ids.pkl"
-PATIENT_IDS_FILENAME = "patient_ids.pkl"
+X_MERGED_FILENAME = "X_merged"
+PREDS_FILENAME = "y_merged"
+REPORT_IDS_FILENAME = "record_ids"
+PATIENT_IDS_FILENAME = "patient_ids"
 
 
+# TODO: replace print with logging
 def prepare_merged_data(dataset_type: DatasetType) -> None:
     """
     Prepare the data for the model
@@ -133,20 +144,30 @@ def prepare_merged_data(dataset_type: DatasetType) -> None:
     FILLNA_DICT = init_fillna_dict(X_reduced)
     X_merged = merge_groups_each_row(
         df=pd.concat([X_reduced, y_reduced], axis=1),
-        group_col="PatientId",
+        group_col=PATIENT_ID_NAME_ENG,
         n=N_MERGED,
-        drop_padded_by="RecordCount",
-        null_value=FILLNA_DICT["RecordCount"],
+        drop_padded_by=RECORD_COUNT_NAME,
+        null_value=FILLNA_DICT[RECORD_COUNT_NAME],
         fillna=FILLNA_DICT,
     ).sort_index()
 
     y_merged = X_merged[TARGET_COLUMN_ENG, 0].astype(int)
-    record_ids = X_merged["RecordId"]
-    patient_ids = X_merged["PatientId", 0].copy()
+    y_merged.name = (TARGET_COLUMN_ENG, 0)
+
+    record_ids = X_merged[RECORD_ID_NAME_ENG].copy()
+    record_ids.columns = pd.MultiIndex.from_tuples(
+        [(RECORD_ID_NAME_ENG, i) for i in range(N_MERGED)]
+    )
+
+    patient_ids = X_merged[PATIENT_ID_NAME_ENG, 0].copy()
+    patient_ids.name = (PATIENT_ID_NAME_ENG, 0)
 
     X_merged = drop_multi_cols(X_merged, MULTI_COLS_TO_DROP, N_MERGED)
     # Drop column to predict
-    X_merged.drop(columns=[TARGET_COLUMN_ENG], inplace=True)
+    X_merged.drop(
+        columns=[TARGET_COLUMN_ENG, RECORD_ID_NAME_ENG, PATIENT_ID_NAME_ENG],
+        inplace=True,
+    )
 
     # Transform float columns to int
     float_cols = X_merged.select_dtypes(include=float).columns
@@ -165,13 +186,18 @@ def prepare_merged_data(dataset_type: DatasetType) -> None:
     TO_SAVE = f"{get_dataset_directory(dataset_type)}/{MERGED_DIR}"
     Path(TO_SAVE).mkdir(parents=True, exist_ok=True)
 
-    for df, filename in [
-        (X_merged, X_MERGED_FILENAME),
-        (y_merged, PREDS_FILENAME),
-        (record_ids, REPORT_IDS_FILENAME),
-        (patient_ids, PATIENT_IDS_FILENAME),
-    ]:
-        dump_df(df, f"{TO_SAVE}/{filename}")
+    # for df, filename in [
+    #     (X_merged, X_MERGED_FILENAME),
+    #     (y_merged, PREDS_FILENAME),
+    #     (record_ids, REPORT_IDS_FILENAME),
+    #     (patient_ids, PATIENT_IDS_FILENAME),
+    # ]:
+    #     dump_df(df, f"{TO_SAVE}/{filename}.pkl")
+
+    # Concat to one dataframe and save
+    df = fold_merged_data(X_merged, y_merged, record_ids, patient_ids)
+
+    df.to_csv(f"{TO_SAVE}/merged_data.csv", index=False)
 
     print_str = f"Saved data to {TO_SAVE}"
     print_str += f" at {datetime.datetime.now():%H:%M:%S, %d.%m.%Y}"
@@ -181,3 +207,27 @@ def prepare_merged_data(dataset_type: DatasetType) -> None:
 def dump_df(df: pd.DataFrame, path: str) -> None:
     with open(path, "wb") as f:
         pickle.dump(df, f)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "dataset_type",
+        type=str,
+        help=f"The type of dataset to prepare. One of: {DATASET_LIST}",
+    )
+
+    args = parser.parse_args()
+    prepare_merged_data(args.dataset_type)
+
+    MERGED_FILE_PATH = f"{get_dataset_directory(args.dataset_type)}/{MERGED_DIR}/merged_data.csv"
+    merged_data = pd.read_csv(MERGED_FILE_PATH)
+
+    for col in merged_data.columns:
+        print(col)
+
+    X_merged, y_merged, record_ids, patient_ids = unfold_merged_data(
+        merged_data
+    )
+
+    print(record_ids.head())
