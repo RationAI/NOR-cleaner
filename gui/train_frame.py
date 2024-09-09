@@ -125,6 +125,7 @@ class TrainFrame(ttk.Frame):
     def on_browse_save_model(self):
         """Open file dialog to select save model path"""
         path = tkinter.filedialog.asksaveasfilename(
+            initialdir=Path(self.default_path, "models"),
             title="Save model to", filetypes=[("JSON files", "*.json")]
         )
         if path:
