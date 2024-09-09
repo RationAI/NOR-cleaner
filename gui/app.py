@@ -16,9 +16,6 @@ class MenuApplication(ttk.Window):
         # Set size of the window
         self.geometry("800x400")
 
-        # Set title of the window
-        self.title("NOR Cleaner")
-
         self.current_frame = None
         self.switch_frame(MainMenuFrame)
 

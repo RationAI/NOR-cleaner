@@ -9,7 +9,7 @@ from ttkbootstrap.constants import *
 
 from gui import TrainFrame
 from gui.error_box import ErrorBox
-from gui.error_wrapper import button_error_wrapper
+from gui.error_wrapper import on_event_error_wrapper
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +30,8 @@ class MainMenuFrame(ttk.Frame):
         super().__init__(master, padding=15, *args, **kwargs)
         self.pack(fill=BOTH, expand=YES)
 
+        master.title("NOR Cleaner")
+
         self.title_label = ttk.Label(
             self, text="Main Menu", style="primary.TLabel"
         )
@@ -44,11 +46,12 @@ class MainMenuFrame(ttk.Frame):
             self,
             text="Train model",
             style="primary.TButton",
-            command=button_error_wrapper(self._on_train, logger=logger),
+            command=self._on_train,
             width=BUTTON_WIDTH,
         )
         self.train_button.pack(pady=10)
 
+    @on_event_error_wrapper(logger)
     def _on_train(self):
         """
         When the user clicks the "Train model" button.

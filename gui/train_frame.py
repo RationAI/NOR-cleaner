@@ -11,9 +11,8 @@ import ttkbootstrap as ttk
 from ttkbootstrap.dialogs import Messagebox
 from ttkbootstrap.constants import *
 
-from gui.error_wrapper import button_error_wrapper
+from gui.error_wrapper import on_event_error_wrapper
 import lib.dataset_names as dataset_names
-from gui.error_box import ErrorBox
 from model.classifier import SELECTED_MODEL
 from model.train import ModelType, train
 
@@ -32,6 +31,8 @@ class TrainFrame(ttk.Frame):
     def __init__(self, master, *args, **kwargs):
         super().__init__(master, padding=15, *args, **kwargs)
         self.pack(fill=BOTH, expand=YES)
+
+        master.title("Train the model")
 
         self.title_label = ttk.Label(
             self, text="Train the model", style="primary.TLabel"
@@ -108,7 +109,7 @@ class TrainFrame(ttk.Frame):
         train_btn = ttk.Button(
             self.option_lf,
             text="Train and save model",
-            command=button_error_wrapper(self.on_train, logger),
+            command=self.on_train,
         )
         train_btn.pack(pady=10)
 
@@ -147,14 +148,10 @@ class TrainFrame(ttk.Frame):
                 f"Model must be saved as a JSON file, got {save_path.name}"
             )
 
+    @on_event_error_wrapper(logger=logger)
     def on_train(self):
         """Train the model and save it"""
         self._train()
-        # try:
-        #     self._train()
-        # except Exception as e:
-        #     logger.error(e)
-        #     ErrorBox.from_exception(e)
 
     def _train(self):
         save_path = Path(self.save_model_path_var.get())
