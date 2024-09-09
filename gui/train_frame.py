@@ -3,13 +3,15 @@ GUI window for training the model and saving it
 """
 
 import logging
-from pathlib import Path
 import tkinter.filedialog
 from datetime import datetime
+from pathlib import Path
 
 import ttkbootstrap as ttk
+from ttkbootstrap.dialogs import Messagebox
 from ttkbootstrap.constants import *
 
+from gui.error_wrapper import button_error_wrapper
 import lib.dataset_names as dataset_names
 from gui.error_box import ErrorBox
 from model.classifier import SELECTED_MODEL
@@ -18,7 +20,7 @@ from model.train import ModelType, train
 logger = logging.getLogger(__name__)
 
 
-class TrainWindow(ttk.Frame):
+class TrainFrame(ttk.Frame):
     """
     TrainWindow class for training the model and saving it.
     Consists of the following widgets:
@@ -104,7 +106,9 @@ class TrainWindow(ttk.Frame):
     def create_train_button(self):
         """Add train button to labelframe"""
         train_btn = ttk.Button(
-            self.option_lf, text="Train and save model", command=self.on_train
+            self.option_lf,
+            text="Train and save model",
+            command=button_error_wrapper(self.on_train, logger),
         )
         train_btn.pack(pady=10)
 
@@ -145,11 +149,12 @@ class TrainWindow(ttk.Frame):
 
     def on_train(self):
         """Train the model and save it"""
-        try:
-            self._train()
-        except Exception as e:
-            logger.error(e)
-            ErrorBox.from_exception(e)
+        self._train()
+        # try:
+        #     self._train()
+        # except Exception as e:
+        #     logger.error(e)
+        #     ErrorBox.from_exception(e)
 
     def _train(self):
         save_path = Path(self.save_model_path_var.get())
@@ -167,10 +172,17 @@ class TrainWindow(ttk.Frame):
         model.save_model(save_path)
         logger.info("Model saved successfully")
 
+        # Show window with success message
+        Messagebox.show_info(
+            title="Model saved",
+            message=f"Model saved successfully to {save_path}",
+            alert=True,
+        )
+
 
 if __name__ == "__main__":
     root = ttk.Window()
-    train_window = TrainWindow(root)
+    train_window = TrainFrame(root)
     train_window.pack()
 
     logging.basicConfig(level=logging.DEBUG)
