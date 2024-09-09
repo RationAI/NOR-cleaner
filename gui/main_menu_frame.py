@@ -7,7 +7,7 @@ import logging
 import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
 
-from gui import TrainFrame
+from gui import PredictFrame, TrainFrame
 from gui.error_box import ErrorBox
 from gui.error_wrapper import on_event_error_wrapper
 
@@ -51,7 +51,7 @@ class MainMenuFrame(ttk.Frame):
         )
         self.train_button.pack(pady=10)
 
-    @on_event_error_wrapper(logger)
+    @on_event_error_wrapper(logger=logger)
     def _on_train(self):
         """
         When the user clicks the "Train model" button.
@@ -61,9 +61,17 @@ class MainMenuFrame(ttk.Frame):
 
     def create_predict_button(self):
         self.predict_button = ttk.Button(
-            self, text="Predict", style="primary.TButton", width=BUTTON_WIDTH
+            self, text="Predict", style="primary.TButton", width=BUTTON_WIDTH, command=self._on_predict
         )
         self.predict_button.pack(pady=10)
+    
+    @on_event_error_wrapper(logger=logger)
+    def _on_predict(self):
+        """
+        When the user clicks the "Predict" button.
+        The window is switched to the PredictWindow.
+        """
+        self.master.switch_frame(PredictFrame)
 
     def create_exit_button(self):
         self.exit_button = ttk.Button(
