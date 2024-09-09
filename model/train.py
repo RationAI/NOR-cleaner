@@ -8,7 +8,7 @@ import xgboost as xgb
 from lib.column_names import TARGET_COLUMN
 from lib.load_dataset import load_merged_data_from_csv
 
-ModelType = Any
+ModelType = xgb.Booster
 
 
 def train(model: ModelType, path: Path) -> ModelType:
