@@ -8,12 +8,12 @@ readme = "README.md"
 requires-python = ">=3.10"
 
 dependencies = [
-    "shap",
-    "pandas",
-    "numpy",
-    "matplotlib",
-    "scikit-learn",
-    "xgboost",
+    "shap==0.46.0",
+    "pandas==2.2.2",
+    "numpy==2.0.1",
+    "matplotlib==3.9.2",
+    "scikit-learn==1.5.1",
+    "xgboost==2.1.1",
 ]
 
 [tool.setuptools]
