@@ -63,9 +63,9 @@ class TrainFrame(ttk.Frame):
     def create_path_row(self):
         """Add path row to labelframe"""
         path_row = ttk.Frame(self.option_lf)
-        path_row.pack(fill=X, expand=YES)
+        path_row.pack(fill=X, expand=YES, pady=(5, 10))
 
-        path_lbl = ttk.Label(path_row, text="Take data from", width=15)
+        path_lbl = ttk.Label(path_row, text="Take data from:", width=15)
         path_lbl.pack(side=LEFT, padx=(15, 0))
 
         path_ent = ttk.Entry(
@@ -87,7 +87,7 @@ class TrainFrame(ttk.Frame):
         save_model_row.pack(fill=X, expand=YES, pady=10)
 
         save_model_lbl = ttk.Label(
-            save_model_row, text="Save model to", width=15
+            save_model_row, text="Save model to:", width=15
         )
         save_model_lbl.pack(side=LEFT, padx=(15, 0))
 
@@ -116,6 +116,7 @@ class TrainFrame(ttk.Frame):
     def on_browse_data(self):
         """Open file dialog to select training data"""
         path = tkinter.filedialog.askopenfilename(
+            initialdir=self.default_path,
             title="Select training data", filetypes=[("CSV files", "*.csv")]
         )
         if path:
