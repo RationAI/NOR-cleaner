@@ -3,8 +3,9 @@ GUI window for training the model and saving it
 """
 
 import logging
-import pathlib
+from pathlib import Path
 import tkinter.filedialog
+from datetime import datetime
 
 import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
@@ -12,7 +13,7 @@ from ttkbootstrap.constants import *
 import lib.dataset_names as dataset_names
 from gui.error_box import ErrorBox
 from model.classifier import SELECTED_MODEL
-from model.train import train, ModelType
+from model.train import ModelType, train
 
 logger = logging.getLogger(__name__)
 
@@ -35,12 +36,16 @@ class TrainWindow(ttk.Frame):
         )
         self.title_label.pack(pady=10)
 
-        self.default_path = pathlib.Path(
-            pathlib.Path().absolute(), dataset_names.DATA_DIR
-        )
+        self.default_path = Path(Path().absolute(), dataset_names.DATA_DIR)
         self.data_path_var = ttk.StringVar(value=self.default_path)
+
+        date_today = datetime.now().strftime("%Y-%m-%d")
+        model_today_dir = Path(self.default_path, "models", date_today)
+        # Create directory for today's models
+        model_today_dir.mkdir(parents=True, exist_ok=True)
+
         self.save_model_path_var = ttk.StringVar(
-            value=pathlib.Path(self.default_path, "models", "model.json")
+            value=Path(model_today_dir, "model.json")
         )
 
         # header and labelframe option container
@@ -118,20 +123,25 @@ class TrainWindow(ttk.Frame):
         )
         if path:
             self.save_model_path_var.set(path)
-        
+
     def _valid_path_parent(self, path: str) -> None:
         """
         Check if every parent directory in the path exists
         """
-        for directory in pathlib.Path(path).parents:
+        for directory in Path(path).parents:
             if not directory.exists():
-                raise FileNotFoundError(f"Directory does not exist: {directory}")
-        
-    def _check_save_path(self, save_path: str) -> None:
+                raise FileNotFoundError(
+                    f"Directory does not exist: {directory}"
+                )
+
+    def _check_save_path(self, save_path: Path) -> None:
         self._valid_path_parent(save_path)
-        
-        if not save_path.endswith(".json"):
-            raise ValueError("Model must be saved as a JSON file")
+
+        logging.debug(f"SUFFIX: {save_path.suffix}")
+        if save_path.suffix != ".json":
+            raise ValueError(
+                f"Model must be saved as a JSON file, got {save_path.name}"
+            )
 
     def on_train(self):
         """Train the model and save it"""
@@ -142,7 +152,7 @@ class TrainWindow(ttk.Frame):
             ErrorBox.from_exception(e)
 
     def _train(self):
-        save_path = self.save_model_path_var.get()
+        save_path = Path(self.save_model_path_var.get())
         self._check_save_path(save_path)
 
         data_path = self.data_path_var.get()
@@ -163,6 +173,6 @@ if __name__ == "__main__":
     train_window = TrainWindow(root)
     train_window.pack()
 
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(level=logging.DEBUG)
 
     root.mainloop()
