@@ -8,10 +8,13 @@ import logging
 
 from data_preparation.data_merge import prepare_merged_data
 from data_preparation.data_preparation import prepare_data
-from lib.dataset_names import DATASET_LIST
+from lib.dataset_names import DATASET_LIST, DatasetType
 
 # Set up the logger
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(message)s")
+# Format: LEVEL:__name__:TIME:MESSAGE
+logging.basicConfig(
+    level=logging.INFO, format="%(levelname)s:%(name)s:%(asctime)s:%(message)s"
+)
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
@@ -37,7 +40,7 @@ parser.add_argument(
 
 
 args = parser.parse_args()
-DATASET_TYPE = args.which
+DATASET_TYPE: DatasetType = args.which
 MERGE = args.merge
 SKIP_PREPARE = args.skip_prepare
 
