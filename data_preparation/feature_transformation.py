@@ -1,5 +1,5 @@
-import pandas as pd
 import numpy as np
+import pandas as pd
 
 from data_preparation.column_names import *
 
@@ -534,10 +534,10 @@ def transform_morfologie_klasifikace_kod(data: pd.DataFrame) -> pd.DataFrame:
 
     data[MORPHOLOGY_CODE] = data[MORPHOLOGY_CODE].fillna(UNKNOWN_MORPHOLOGY)
 
-    data["MorphologyHistologyCode"] = data[MORPHOLOGY_CODE] // 10
-    data["MorphologyBehaviorCode"] = data[MORPHOLOGY_CODE] % 10
+    data[MORPHOLOGY_HISTOLOGY] = data[MORPHOLOGY_CODE] // 10
+    data[MORPHOLOGY_BEHAVIOR] = data[MORPHOLOGY_CODE] % 10
 
-    data["MorphologyHistologyCode"] = data["MorphologyHistologyCode"].replace(
+    data[MORPHOLOGY_HISTOLOGY] = data[MORPHOLOGY_HISTOLOGY].replace(
         {UNKNOWN_MORPHOLOGY // 10: -1}
     )
 
