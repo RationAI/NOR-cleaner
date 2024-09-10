@@ -35,6 +35,8 @@ from lib.column_names import TARGET_COLUMN_ENG
 from lib.dataset_names import DATA_DIR, DATA_PREPROCESSED_FILENAME, DatasetType
 from lib.load_dataset import get_original_dataset
 
+logger = logging.getLogger(__name__)
+
 
 def all_transformations(df: pd.DataFrame) -> pd.DataFrame:
     PIPELINE = [
@@ -76,7 +78,7 @@ def _save_data(data: pd.DataFrame, dataset_type: DatasetType) -> None:
 
     with open(data_preprocessed, "wb") as f:
         pickle.dump(data, f)
-        logging.info(f"Data saved to {data_preprocessed}")
+        logger.info(f"Data saved to {data_preprocessed}")
 
 
 def prepare_data(dataset_type: DatasetType) -> pd.DataFrame:
@@ -84,25 +86,25 @@ def prepare_data(dataset_type: DatasetType) -> pd.DataFrame:
     Prepare the data for the model
     """
     data = get_original_dataset(which=dataset_type)
-    logging.info(f"Data of type `{dataset_type}` loaded, shape: {data.shape}")
+    logger.info(f"Data of type `{dataset_type}` loaded, shape: {data.shape}")
 
     # Check that all necessary columns are present
     check_columns(data)
-    logging.info("All necessary columns are present.")
+    logger.info("All necessary columns are present.")
 
-    logging.info(
+    logger.info(
         "Algorithmic filtering of ICD-10 codes. It may take a while..."
     )
     data, dropped_record_ids = algorithmic_filtering_icd_10(data)
-    logging.info("Algorithmic filtering done.")
-    logging.info(
+    logger.info("Algorithmic filtering done.")
+    logger.info(
         f"Number of algorithmically filtered records: {len(dropped_record_ids)}"
     )
 
     # Apply all transformations
-    logging.info("Applying all transformations...")
+    logger.info("Applying all transformations...")
     data = all_transformations(data)
-    logging.info("All transformations applied.")
+    logger.info("All transformations applied.")
 
     # Move vyporadani_final to the end
     cols = list(data.columns)
