@@ -425,7 +425,7 @@ def dg_code_divide_into_cols(df: pd.DataFrame) -> pd.DataFrame:
         .astype("int64")
     )
 
-    df["DgKodSpecific"] = (
+    df[ICD_SPECIFIC] = (
         df["DgKod"]
         .apply(
             # Get last number
@@ -436,10 +436,10 @@ def dg_code_divide_into_cols(df: pd.DataFrame) -> pd.DataFrame:
     )
 
     # If there is 9 in DgKodSpecific, then it is unspecified
-    df["DgKodSpecific"] = df["DgKodSpecific"].replace({9: -2})
+    df[ICD_SPECIFIC] = df[ICD_SPECIFIC].replace({9: -2})
 
     # Add unspecified localization column
-    df["DgKod_C76_C80"] = (
+    df[ICD_CODE_RANGE_C76_C80] = (
         df["DgKod"]
         .apply(lambda x: 1 if "C76" <= x < "C81" else 0)
         .astype("int64")
@@ -472,15 +472,19 @@ def transform_dg_to_number(
     # Combine into one number
     df[TRANSF_NAME] = df["DgKodLetter"] * 1000 + df["DgKodNumber"] * 10
 
-    df["DgKod_Specific_Encoded"] = df["DgKodSpecific"]
-
     # Drop columns
     df.drop(
-        ["DgKodLetter", "DgKodNumber", "DgKodSpecific"], axis=1, inplace=True
+        # Do not drop `ICD_SPECIFIC` column
+        ["DgKodLetter", "DgKodNumber"],
+        axis=1,
+        inplace=True,
     )
 
     if drop:
         df.drop([ICD_CODE_NAME], axis=1, inplace=True)
+
+    # Rename back to ICD_CODE_NAME
+    df.rename(columns={TRANSF_NAME: ICD_CODE_NAME}, inplace=True)
 
     return df
 
@@ -542,13 +546,9 @@ def transform_morfologie_klasifikace_kod(data: pd.DataFrame) -> pd.DataFrame:
     )
 
     # Replace behavior to -2 where morphology is unknown
-    data.loc[
-        data["MorphologyHistologyCode"] == -1, "MorphologyBehaviorCode"
-    ] = -2
+    data.loc[data[MORPHOLOGY_HISTOLOGY] == -1, MORPHOLOGY_BEHAVIOR] = -2
     # Code 9 means Malignant, uncertain whether primary or metastatic site
-    data["MorphologyBehaviorCode"] = data["MorphologyBehaviorCode"].replace(
-        {9: -1}
-    )
+    data[MORPHOLOGY_BEHAVIOR] = data[MORPHOLOGY_BEHAVIOR].replace({9: -1})
 
     # Transform grading
     # Code 9 -- Grade or differentiation not determined,
@@ -858,7 +858,7 @@ def count_unknown_values(
     )
 
     df = df.copy()
-    df["UnknownCount"] = df[cols_to_take].apply(
+    df[UNKNOWN_COUNT] = df[cols_to_take].apply(
         lambda row: sum(row < 0), axis=1
     )
 

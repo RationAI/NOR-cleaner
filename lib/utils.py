@@ -4,14 +4,10 @@ from typing import Callable
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
-from lib.column_names import (
-    PATIENT_ID_NAME_ENG,
-    TARGET_COLUMN_ENG,
-    RECORD_ID_NAME_ENG,
-)
+from lib.column_names import PATIENT_ID_NAME, RECORD_ID_NAME, TARGET_COLUMN
 from lib.load_dataset import get_ready_data
 
-TO_DROP_IDS = [PATIENT_ID_NAME_ENG, RECORD_ID_NAME_ENG]
+TO_DROP_IDS = [PATIENT_ID_NAME, RECORD_ID_NAME]
 
 
 Train_Dataset = pd.DataFrame
@@ -129,8 +125,8 @@ def get_X_y(
     """
     data_ready = getter()
 
-    X = data_ready.drop(columns=[TARGET_COLUMN_ENG])
-    y = data_ready[TARGET_COLUMN_ENG]
+    X = data_ready.drop(columns=[TARGET_COLUMN])
+    y = data_ready[TARGET_COLUMN]
 
     return X, y
 

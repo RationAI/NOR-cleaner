@@ -31,7 +31,7 @@ from data_preparation.feature_transformation import (
     transform_topografie_kod,
 )
 from data_preparation.translate_english import df_english_translation
-from lib.column_names import TARGET_COLUMN_ENG
+from lib.column_names import TARGET_COLUMN
 from lib.dataset_names import DATA_DIR, DATA_PREPROCESSED_FILENAME, DatasetType
 from lib.load_dataset import get_original_dataset
 
@@ -58,7 +58,7 @@ def all_transformations(df: pd.DataFrame) -> pd.DataFrame:
         count_unknown_values,
         partial(transform_date, drop=True),
         count_records_per_patient,
-        df_english_translation,
+        # df_english_translation,
     ]
 
     df = df.copy()
@@ -108,8 +108,8 @@ def prepare_data(dataset_type: DatasetType) -> pd.DataFrame:
 
     # Move vyporadani_final to the end
     cols = list(data.columns)
-    cols.remove(TARGET_COLUMN_ENG)
-    cols.append(TARGET_COLUMN_ENG)
+    cols.remove(TARGET_COLUMN)
+    cols.append(TARGET_COLUMN)
     data = data[cols]
 
     # Check there are no null values

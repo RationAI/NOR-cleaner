@@ -1,10 +1,6 @@
 import pandas as pd
 
-from lib.column_names import (
-    PATIENT_ID_NAME_ENG,
-    RECORD_ID_NAME_ENG,
-    TARGET_COLUMN_ENG,
-)
+from lib.column_names import PATIENT_ID_NAME, RECORD_ID_NAME, TARGET_COLUMN
 
 
 def fold_merged_data(
@@ -29,12 +25,19 @@ def unfold_merged_data(
         [tuple(col.rsplit("_", 1)) for col in merged_df.columns]
     )
 
-    y_merged = merged_df[TARGET_COLUMN_ENG]
-    record_ids = merged_df[RECORD_ID_NAME_ENG]
-    patient_ids = merged_df[PATIENT_ID_NAME_ENG]
+    # Set the right index to int
+    merged_df.columns = pd.MultiIndex.from_tuples(
+        [(name, int(idx)) for name, idx in merged_df.columns]
+    )
+
+    y_merged = merged_df[TARGET_COLUMN]
+    record_ids = merged_df[RECORD_ID_NAME]
+
+    patient_ids = merged_df[PATIENT_ID_NAME]
+    patient_ids = pd.Series(patient_ids.iloc[:, 0], name=PATIENT_ID_NAME)
 
     X_merged = merged_df.drop(
-        columns=[TARGET_COLUMN_ENG, RECORD_ID_NAME_ENG, PATIENT_ID_NAME_ENG],
+        columns=[TARGET_COLUMN, RECORD_ID_NAME, PATIENT_ID_NAME],
         level=0,
     )
 

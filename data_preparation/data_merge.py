@@ -10,6 +10,7 @@ import pandas as pd
 import lib.utils
 from data_preparation.column_names import (
     ALGO_FILTERED_COLUMN,
+    NOVELTY_RANK,
     RECORD_COUNT_NAME,
 )
 from data_preparation.fold_unfold_merged_data import (
@@ -26,9 +27,11 @@ from data_preparation.merged_transformation import (
     records_equal,
 )
 from lib.column_names import (
-    PATIENT_ID_NAME_ENG,
-    RECORD_ID_NAME_ENG,
-    TARGET_COLUMN_ENG,
+    CREATED_WITH_BATCH,
+    PATIENT_ID_NAME,
+    RECORD_ID_NAME,
+    SENTINEL_LYMPH_NODE,
+    TARGET_COLUMN,
 )
 from lib.dataset_names import DATASET_LIST, DatasetType, get_dataset_directory
 from lib.load_dataset import get_ready_data
@@ -44,30 +47,27 @@ N_MERGED = TAKE_RANGE[1]
 MERGED_DIR = "merged_data"
 
 
-MULTI_COLS_TO_DROP = [
-    "PatientId",
-    "RecordCount",
-]
+MULTI_COLS_TO_DROP = [PATIENT_ID_NAME, RECORD_COUNT_NAME]
 
 DONT_TAKE_COLS_EQUAL_COUNT = [
-    "RecordId",
-    "PatientId",
-    "RecordCount",
-    "NoveltyRank",
+    RECORD_ID_NAME,
+    PATIENT_ID_NAME,
+    RECORD_COUNT_NAME,
+    NOVELTY_RANK,
     "ICD_Equal_With",
     "Any_ICD_C76_C80",
 ]
 
 DONT_TAKE_COLS_FEATURE_DIFF = [
-    "RecordId",
-    "PatientId",
-    "RecordCount",
-    "NoveltyRank",
+    RECORD_ID_NAME,
+    PATIENT_ID_NAME,
+    RECORD_COUNT_NAME,
+    NOVELTY_RANK,
     "ICD_Equal_With",
     "Any_ICD_C76_C80",
     "ICDRangeC76-C80",
-    "CreatedWithBatch",
-    "SentinelLymphNode",
+    CREATED_WITH_BATCH,
+    SENTINEL_LYMPH_NODE,
 ]
 
 
@@ -130,8 +130,8 @@ def prepare_merged_data(dataset_type: DatasetType) -> None:
         & (X_reduced["RecordCount"] <= TAKE_RANGE[1])
     ]
 
-    y_reduced = X_reduced[TARGET_COLUMN_ENG]
-    X_reduced.drop(columns=TARGET_COLUMN_ENG, inplace=True)
+    y_reduced = X_reduced[TARGET_COLUMN]
+    X_reduced.drop(columns=TARGET_COLUMN, inplace=True)
 
     logger.info(
         f"{len(X) - len(X_reduced)} rows removed after filtering by {RECORD_COUNT_NAME}."
@@ -146,28 +146,28 @@ def prepare_merged_data(dataset_type: DatasetType) -> None:
     FILLNA_DICT = init_fillna_dict(X_reduced)
     X_merged = merge_groups_each_row(
         df=pd.concat([X_reduced, y_reduced], axis=1),
-        group_col=PATIENT_ID_NAME_ENG,
+        group_col=PATIENT_ID_NAME,
         n=N_MERGED,
         drop_padded_by=RECORD_COUNT_NAME,
         null_value=FILLNA_DICT[RECORD_COUNT_NAME],
         fillna=FILLNA_DICT,
     ).sort_index()
 
-    y_merged = X_merged[TARGET_COLUMN_ENG, 0].astype(int)
-    y_merged.name = (TARGET_COLUMN_ENG, 0)
+    y_merged = X_merged[TARGET_COLUMN, 0].astype(int)
+    y_merged.name = (TARGET_COLUMN, 0)
 
-    record_ids = X_merged[RECORD_ID_NAME_ENG].copy()
+    record_ids = X_merged[RECORD_ID_NAME].copy()
     record_ids.columns = pd.MultiIndex.from_tuples(
-        [(RECORD_ID_NAME_ENG, i) for i in range(N_MERGED)]
+        [(RECORD_ID_NAME, i) for i in range(N_MERGED)]
     )
 
-    patient_ids = X_merged[PATIENT_ID_NAME_ENG, 0].copy()
-    patient_ids.name = (PATIENT_ID_NAME_ENG, 0)
+    patient_ids = X_merged[PATIENT_ID_NAME, 0].copy()
+    patient_ids.name = (PATIENT_ID_NAME, 0)
 
     X_merged = drop_multi_cols(X_merged, MULTI_COLS_TO_DROP, N_MERGED)
     # Drop column to predict
     X_merged.drop(
-        columns=[TARGET_COLUMN_ENG, RECORD_ID_NAME_ENG, PATIENT_ID_NAME_ENG],
+        columns=[TARGET_COLUMN, RECORD_ID_NAME, PATIENT_ID_NAME],
         inplace=True,
     )
 

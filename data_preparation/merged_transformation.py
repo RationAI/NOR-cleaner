@@ -1,41 +1,54 @@
 from typing import Any
+
 import pandas as pd
+
+from data_preparation.column_names import (
+    ICD_CODE_RANGE_C76_C80,
+    ICD_SPECIFIC,
+    MEDICAL_INSTITUTE_TYPE,
+    MORPHOLOGY_BEHAVIOR,
+    MORPHOLOGY_HISTOLOGY,
+    NOVELTY_RANK,
+    RECORD_COUNT_NAME,
+    UNKNOWN_COUNT,
+)
+from lib.column_names import *
 
 
 def init_fillna_dict(df: pd.DataFrame) -> dict[str, Any]:
 
     get_min = lambda col: df[col].min()
     FILLNA_DICT = {
-        "RecordId": 0,
-        "PatientId": 0,
-        "CodeEstablishingDg": -1,
-        "SentinelLymphNode": get_min("SentinelLymphNode"),
-        "TypeOfCare": -1,
-        "CreatedWithBatch": -1,
-        "ClinicalStadium": get_min("ClinicalStadium"),
-        "ExtendOfDisease": -1,
-        "DistantMetastasis": -1,
-        "ICDRangeC76-C80": -1,
-        "ICD": -1,
-        "ICDLoc": get_min("ICDLoc"),
-        "Topography": -1,
-        "Laterality": -1,
-        "MedicalInstituteType": -1,
-        "T": get_min("T"),
-        "N": get_min("N"),
-        "M": get_min("M"),
-        "NoveltyRank": -1,
-        "YearDg": -1,
-        "FinalDecision": -1,
-        "PNExamination": -1,
-        "PNExaminationPos": -1,
-        "MorphHistology": get_min("MorphHistology"),
-        "MorphBehavior": get_min("MorphBehavior"),
-        "MorphGrading": get_min("MorphGrading"),
-        "RecordCount": -1,
-        "UnknownCount": -1,
+        RECORD_ID_NAME: 0,
+        PATIENT_ID_NAME: 0,
+        CODE_ESTABLISHING_DG: -1,
+        SENTINEL_LYMPH_NODE: get_min(SENTINEL_LYMPH_NODE),
+        TYPE_OF_CARE: -1,
+        CREATED_WITH_BATCH: -1,
+        CLINICAL_STADIUM: get_min(CLINICAL_STADIUM),
+        EXTEND_OF_DISEASE: -1,
+        DISTANT_METASTASIS: -1,
+        ICD_CODE_RANGE_C76_C80: -1,
+        ICD_CODE_NAME: -1,
+        ICD_SPECIFIC: get_min(ICD_SPECIFIC),
+        TOPOGRAPHY_CODE: -1,
+        LATERALITY_CODE: -1,
+        MEDICAL_INSTITUTE_TYPE: -1,
+        T: get_min(T),
+        N: get_min(N),
+        M: get_min(M),
+        NOVELTY_RANK: -1,
+        YEAR_ESTABLISHING_DG: -1,
+        TARGET_COLUMN: -1,
+        PN_EXAMINATION: -1,
+        PN_EXAMINATION_POS: -1,
+        MORPHOLOGY_HISTOLOGY: get_min(MORPHOLOGY_HISTOLOGY),
+        MORPHOLOGY_BEHAVIOR: get_min(MORPHOLOGY_BEHAVIOR),
+        MORPHOLOGY_GRADING: get_min(MORPHOLOGY_GRADING),
+        RECORD_COUNT_NAME: -1,
+        UNKNOWN_COUNT: -1,
         # Call datetime64[ns] to get date in 1900
-        "DateOfEstablishingDg": pd.to_datetime("1900-01-01"),
+        DATE_ESTABLISHING_DG: pd.to_datetime("1900-01-01"),
     }
 
     # Check that all columns from the DataFrame are in the FILLNA_DICT
@@ -66,7 +79,7 @@ def any_c76_c80_check(df: pd.DataFrame, n: int) -> pd.DataFrame:
                 return 1
         return 0
 
-    df["Any_ICD_C76_C80", 0] = df["ICDRangeC76-C80"].apply(_check, axis=1)
+    df["Any_ICD_C76_C80", 0] = df[ICD_CODE_RANGE_C76_C80].apply(_check, axis=1)
 
     return df
 
@@ -89,7 +102,7 @@ def equality_of_dg_codes(df: pd.DataFrame, n: int) -> pd.DataFrame:
         return int(x[0] == x[i])
 
     for i in range(1, n):
-        df[f"ICD_Equal_With", i] = df["ICD"].apply(
+        df[f"ICD_Equal_With", i] = df[ICD_CODE_NAME].apply(
             lambda x: check_equality_dg_codes(x, i), axis=1
         )
 
@@ -108,10 +121,10 @@ def records_equal(df: pd.DataFrame, n: int) -> pd.DataFrame:
 
     cols_to_take = []
     ignore_cols = [
-        "NoveltyRank",
-        "RecordId",
-        "PatientId",
-        "RecordCount",
+        NOVELTY_RANK,
+        RECORD_ID_NAME,
+        PATIENT_ID_NAME,
+        RECORD_COUNT_NAME,
     ]
     for col, i in df.columns:
         if i == 0 and col not in ignore_cols:
