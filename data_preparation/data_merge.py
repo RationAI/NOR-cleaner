@@ -1,5 +1,6 @@
 import argparse
 import datetime
+import logging
 import pickle
 from functools import partial
 from pathlib import Path
@@ -32,6 +33,8 @@ from lib.column_names import (
 from lib.dataset_names import DATASET_LIST, DatasetType, get_dataset_directory
 from lib.load_dataset import get_ready_data
 from lib.merge_records import drop_multi_cols, merge_groups_each_row
+
+logger = logging.getLogger(__name__)
 
 # Take patients with RecordCount in the range
 TAKE_RANGE = (2, 3)
@@ -104,7 +107,6 @@ REPORT_IDS_FILENAME = "record_ids"
 PATIENT_IDS_FILENAME = "patient_ids"
 
 
-# TODO: replace print with logging
 def prepare_merged_data(dataset_type: DatasetType) -> None:
     """
     Prepare the data for the model
@@ -131,8 +133,8 @@ def prepare_merged_data(dataset_type: DatasetType) -> None:
     y_reduced = X_reduced[TARGET_COLUMN_ENG]
     X_reduced.drop(columns=TARGET_COLUMN_ENG, inplace=True)
 
-    print(
-        len(X) - len(X_reduced), "rows removed after filtering by RecordCount."
+    logger.info(
+        f"{len(X) - len(X_reduced)} rows removed after filtering by {RECORD_COUNT_NAME}."
     )
 
     # Check if there are any missing values
@@ -173,7 +175,9 @@ def prepare_merged_data(dataset_type: DatasetType) -> None:
     float_cols = X_merged.select_dtypes(include=float).columns
     X_merged[float_cols] = X_merged[float_cols].astype(int)
 
-    print("Shape after dropping columns:", X_merged.shape, y_merged.shape)
+    logger.info(
+        f"Shape after dropping columns: {X_merged.shape}, {y_merged.shape}"
+    )
 
     X_merged = all_merged_transformations(X_merged)
 
@@ -183,8 +187,8 @@ def prepare_merged_data(dataset_type: DatasetType) -> None:
         raise ValueError(f"Number of null values: {non_null_num}")
 
     # Save the data
-    TO_SAVE = f"{get_dataset_directory(dataset_type)}/{MERGED_DIR}"
-    Path(TO_SAVE).mkdir(parents=True, exist_ok=True)
+    TO_SAVE: Path = get_dataset_directory(dataset_type) / MERGED_DIR
+    TO_SAVE.mkdir(parents=True, exist_ok=True)
 
     # for df, filename in [
     #     (X_merged, X_MERGED_FILENAME),
@@ -199,9 +203,7 @@ def prepare_merged_data(dataset_type: DatasetType) -> None:
 
     df.to_csv(f"{TO_SAVE}/merged_data.csv", index=False)
 
-    print_str = f"Saved data to {TO_SAVE}"
-    print_str += f" at {datetime.datetime.now():%H:%M:%S, %d.%m.%Y}"
-    print(print_str)
+    logger.info(f"Saved data to {TO_SAVE}")
 
 
 def dump_df(df: pd.DataFrame, path: str) -> None:
@@ -220,7 +222,11 @@ if __name__ == "__main__":
     args = parser.parse_args()
     prepare_merged_data(args.dataset_type)
 
-    MERGED_FILE_PATH = f"{get_dataset_directory(args.dataset_type)}/{MERGED_DIR}/merged_data.csv"
+    MERGED_FILE_PATH = (
+        get_dataset_directory(args.dataset_type)
+        / MERGED_DIR
+        / "merged_data.csv"
+    )
     merged_data = pd.read_csv(MERGED_FILE_PATH)
 
     X_merged, y_merged, record_ids, patient_ids = unfold_merged_data(
