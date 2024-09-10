@@ -1,9 +1,8 @@
 """
 Hyperparameters for the model.
 """
-import xgboost as xgb
 
-
+# fmt: off
 # Parameters for XGBoost
 _XGBC_HYPERPARAMS = {
     "objective": "binary:logistic",
@@ -20,6 +19,7 @@ _XGBC_HYPERPARAMS = {
     # The ratio of negative and positive values
     # "scale_pos_weight": (n_records - n_positives) / n_positives,
 }
+# fmt: on
 
 
 def get_xgbc_hyperparams() -> dict:
