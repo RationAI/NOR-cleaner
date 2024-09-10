@@ -1,5 +1,5 @@
+from pathlib import Path
 from typing import Literal
-
 
 DATA_DIR = "data"
 ORIGINAL_DATASET_FILENAME = "data_by_expert.csv"
@@ -16,7 +16,7 @@ DatasetType = Literal["2019-2021", "2022", "verify_dataset"]
 DATASET_LIST = ["2019-2021", "2022", "verify_dataset"]
 
 
-def get_dataset_directory(which: DatasetType) -> str:
+def get_dataset_directory(which: DatasetType) -> Path:
     """
     Get the directory of the dataset.
 
@@ -25,7 +25,7 @@ def get_dataset_directory(which: DatasetType) -> str:
             Which dataset to get.
 
     Returns:
-        str:
+        Path:
             Directory of the dataset.
     """
-    return f"{DATA_DIR}/{which}"
+    return Path(DATA_DIR) / which
