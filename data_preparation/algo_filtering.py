@@ -6,6 +6,7 @@ function.
 """
 
 import pandas as pd
+from tqdm import tqdm
 
 import data_preparation.feature_transformation as data_prep
 from data_preparation.column_names import MEDICAL_INSTITUTE_TYPE
@@ -13,8 +14,8 @@ from lib.column_names import (
     ICD_CODE_NAME,
     PATIENT_ID_NAME,
     RECORD_ID_NAME,
-    TYPE_OF_CARE,
     TARGET_COLUMN,
+    TYPE_OF_CARE,
 )
 
 # Path to the file with ICD-10 ranges
@@ -94,7 +95,7 @@ def _drop_records_with_lower_score(
 
     record_ids_left_out = []
 
-    for _, group in df.groupby(PATIENT_ID_NAME):
+    for _, group in tqdm(df.groupby(PATIENT_ID_NAME)):
         # Get unique ICD-10 codes
         codes_three = set(group["icd_three"].unique())
         codes_four = set(group[ICD_CODE_NAME].unique())
