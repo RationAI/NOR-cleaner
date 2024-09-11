@@ -36,6 +36,7 @@ from data_preparation.translate_english import df_english_translation
 from lib.column_names import TARGET_COLUMN
 from lib.dataset_names import DATA_DIR, DATA_PREPROCESSED_FILENAME, DatasetType
 from lib.load_dataset import get_original_dataset
+from scripts.constants import SAVE_PREPARED_DATA
 
 logger = logging.getLogger(__name__)
 
@@ -70,24 +71,13 @@ def all_transformations(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def _save_data(data: pd.DataFrame, save_path: Path) -> None:
-    """
-    Save the data to a pickle file
-    """
-    with open(save_path, "wb") as f:
-        pickle.dump(data, f)
-        logger.info(f"Data saved to {save_path}")
-
-
-def prepare_data(data: pd.DataFrame, save_path: Path) -> pd.DataFrame:
+def prepare_data(data: pd.DataFrame) -> pd.DataFrame:
     """
     Prepare the data for the model.
 
     Parameters:
         data: pd.DataFrame
             The DataFrame to prepare.
-        save_path: Path
-            Path to save the prepared data.
 
     Returns:
         pd.DataFrame:
@@ -133,6 +123,7 @@ def prepare_data(data: pd.DataFrame, save_path: Path) -> pd.DataFrame:
         )
 
     # Save the data
-    _save_data(data, save_path)
+    data.to_csv(SAVE_PREPARED_DATA, index=False)
+    logger.info(f"Data saved to {SAVE_PREPARED_DATA}")
 
     return data
