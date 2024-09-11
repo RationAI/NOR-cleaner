@@ -91,9 +91,9 @@ def _drop_records_with_lower_score(
         tuple[list[int], list[int]]
             The list of record IDs to drop and the list of record IDs left out.
     """
-    to_drop = []
+    to_drop: list[int] = []
 
-    record_ids_left_out = []
+    record_ids_left_out: list[int] = []
 
     for _, group in tqdm(df.groupby(PATIENT_ID_NAME)):
         # Get unique ICD-10 codes
@@ -206,7 +206,7 @@ def _df_transform_for_scoring(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def process_icd_ranges_file(filename: str) -> set[str]:
+def process_icd_ranges_file(filename: str) -> tuple[set[str], set[str]]:
     """
     Process the ICD ranges file and return a set of ICD codes.
 
