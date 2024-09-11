@@ -5,6 +5,7 @@ File for data preparation
 import logging
 import pickle
 from functools import partial
+from typing import Callable
 
 import pandas as pd
 
@@ -39,7 +40,7 @@ logger = logging.getLogger(__name__)
 
 
 def all_transformations(df: pd.DataFrame) -> pd.DataFrame:
-    PIPELINE = [
+    PIPELINE: list[Callable[[pd.DataFrame], pd.DataFrame]] = [
         drop_columns,
         fill_nan_to_zero,
         cols_to_int,
