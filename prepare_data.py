@@ -7,7 +7,7 @@ import argparse
 import logging
 
 from data_preparation.data_merge import prepare_merged_data
-from data_preparation.data_preparation import prepare_data
+from data_preparation.data_preparation import preprocess_data
 from lib.dataset_names import DATASET_LIST, DatasetType
 
 # Set up the logger
@@ -50,7 +50,7 @@ if DATASET_TYPE not in DATASET_LIST:
 
 # Prepare the data
 if not SKIP_PREPARE:
-    prepare_data(DATASET_TYPE)
+    preprocess_data(DATASET_TYPE)
 else:
     print("Skipping data preparation.")
 
