@@ -156,7 +156,13 @@ def prepare_merged_data(
         fillna=FILLNA_DICT,
     ).sort_index()
 
-    y_merged = X_merged[TARGET_COLUMN, 0].astype(int)
+    y_merged = pd.Series(0, index=X_merged.index, name=(TARGET_COLUMN, 0))
+    # Check if there is a column to predict
+    # Otherwise leave y_merged empty but with the right size
+    if TARGET_COLUMN in X_merged.columns:
+        y_merged.loc[:] = X_merged[TARGET_COLUMN, 0].astype(int)
+        # y_merged = X_merged[TARGET_COLUMN, 0].astype(int)
+
     y_merged.name = (TARGET_COLUMN, 0)
 
     record_ids = X_merged[RECORD_ID_NAME].copy()
