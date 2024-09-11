@@ -1,21 +1,19 @@
-from functools import partial
-from typing import Callable
+from typing import TypeAlias
 
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
 from lib.column_names import PATIENT_ID_NAME, RECORD_ID_NAME, TARGET_COLUMN
-from lib.load_dataset import get_ready_data
 
 TO_DROP_IDS = [PATIENT_ID_NAME, RECORD_ID_NAME]
 
 
-Train_Dataset = pd.DataFrame
-Test_Dataset = pd.DataFrame
-Val_Dataset = pd.DataFrame
-Train_Predictions = pd.DataFrame
-Test_Predictions = pd.DataFrame
-Val_Predictions = pd.DataFrame
+Train_Dataset: TypeAlias = pd.DataFrame
+Test_Dataset: TypeAlias = pd.DataFrame
+Val_Dataset: TypeAlias = pd.DataFrame
+Train_Predictions: TypeAlias = pd.DataFrame
+Test_Predictions: TypeAlias = pd.DataFrame
+Val_Predictions: TypeAlias = pd.DataFrame
 
 
 def split_by_ids(

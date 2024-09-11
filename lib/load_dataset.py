@@ -7,7 +7,6 @@ from pathlib import Path
 
 import pandas as pd
 
-import data_preparation
 from data_preparation.fold_unfold_merged_data import unfold_merged_data
 from lib.dataset_names import (
     DATA_PREPROCESSED_FILENAME,
