@@ -1,3 +1,4 @@
+import logging
 import re
 import sys
 from datetime import datetime
@@ -8,13 +9,21 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
+from numpy.typing import NDArray
 from sklearn.metrics import RocCurveDisplay, accuracy_score, f1_score, log_loss
 from sklearn.model_selection import StratifiedGroupKFold, cross_validate
+from tqdm import tqdm
 
 from data_preparation.column_names import RECORD_COUNT_NAME
 from lib.merge_records import augment_merged_x_y_df
 
 sns.set_theme()
+
+# Set up logging
+logger = logging.getLogger(__name__)
+
+# Type aliases
+ScoreDict = dict[str, NDArray]
 
 
 # Model evaluation
@@ -194,7 +203,7 @@ def get_cross_val_score(
     )
 
 
-def process_scoring_dict(scores: dict[str, np.array]) -> str:
+def process_scoring_dict(scores: dict[str, NDArray]) -> str:
     keys = sorted(scores.keys())
 
     out = ""
@@ -221,7 +230,7 @@ def process_scoring_dict(scores: dict[str, np.array]) -> str:
     return out
 
 
-def process_each_records_scores(scores: dict[str, np.array]) -> str:
+def process_each_records_scores(scores: dict[str, NDArray]) -> str:
     out = ""
     max_val = -1
     for val in scores.keys():
@@ -315,7 +324,7 @@ def cross_validation_merged_df(
     augment_data: bool = False,
     random_state: int = 42,
     confusion_matrix_plot: bool = False,
-) -> dict[str, np.ndarray]:
+) -> tuple[ScoreDict, dict[int, ScoreDict]] | ScoreDict:
     """
     Cross-validation with data augmentation.
     The data is augmented by swapping the rows of a merged dataset.
@@ -331,7 +340,7 @@ def cross_validation_merged_df(
         groups: pd.Series
             Series containing the groups for the StratifiedGroupKFold.
             The groups must have the same length as the DataFrame.
-        
+
         scaler: Any
             Scaler to be used for the data.
 
@@ -343,6 +352,7 @@ def cross_validation_merged_df(
 
         record_count_getter: Callable[[pd.DataFrame], pd.Series]
             Function to get the record count from the DataFrame.
+            If None, the function uses the default record count getter.
 
         augment_data: bool
             Whether to augment the data by swapping the rows.
@@ -354,13 +364,21 @@ def cross_validation_merged_df(
             Whether to plot the confusion matrix.
 
     Returns:
-        dict[str, np.ndarray]
+        tuple[ScoreDict, dict[int, ScoreDict]] | ScoreDict
             Dictionary containing the scores for each metric.
             The key is the metric name and the value is a numpy array
             containing the scores for each fold.
+            If each_record_eval is True, the function returns a tuple
+            containing the scores for each record count as well.
     """
-    assert X_merged.index.equals(y.index)
-    assert n >= 2
+    if not X_merged.index.equals(y.index):
+        raise ValueError("Indices of X and y must be equal.")
+
+    if n < 2:
+        raise ValueError("n must be at least 2.")
+
+    if record_count_getter is None:
+        record_count_getter = lambda X: X[RECORD_COUNT_NAME, 0]
 
     score_names = [
         "accuracy",
@@ -403,7 +421,9 @@ def cross_validation_merged_df(
         random_state=random_state,
     )
 
-    for train_index, test_index in skf.split(X_merged, y, groups=groups):
+    for train_index, test_index in tqdm(
+        skf.split(X_merged, y, groups=groups), total=n_splits
+    ):
         # Split the data into train and test folds
         X_train = X_merged.iloc[train_index]
         y_train = y.iloc[train_index]
@@ -430,7 +450,9 @@ def cross_validation_merged_df(
             X_test = scaler.transform(X_test)
 
         # Fit the model on the train fold
+        logging.debug("Fitting the model...")
         model.fit(X_train, y_train)
+        logging.debug("Model fitted.")
 
         # Predict on the test fold
         preds = model.predict(X_test)
@@ -544,10 +566,10 @@ def cross_val_non_merged_df(
         groups: pd.Series
             Series containing the groups for the StratifiedGroupKFold.
             The groups must have the same length as the DataFrame.
-        
+
         n: int
             Number of records in a data point.
-        
+
         n_splits: int
             Number of splits for the cross-validation.
 
@@ -556,13 +578,13 @@ def cross_val_non_merged_df(
 
         random_state: int
             Random state for the StratifiedGroupKFold.
-        
+
         each_record_eval: bool
             Whether to evaluate the model for each record count.
 
         confusion_matrix_plot: bool
             Whether to plot the confusion matrix.
-    
+
     Returns:
         dict[str, np.ndarray]
             Dictionary containing the scores for each metric.
