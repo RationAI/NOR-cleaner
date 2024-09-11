@@ -36,7 +36,7 @@ from data_preparation.translate_english import df_english_translation
 from lib.column_names import TARGET_COLUMN
 from lib.dataset_names import DATA_DIR, DATA_PREPROCESSED_FILENAME, DatasetType
 from lib.load_dataset import get_original_dataset
-from scripts.constants import SAVE_PREPARED_DATA
+from scripts.constants import PREPARED_DATA_PATH
 
 logger = logging.getLogger(__name__)
 
@@ -123,7 +123,7 @@ def prepare_data(data: pd.DataFrame) -> pd.DataFrame:
         )
 
     # Save the data
-    data.to_csv(SAVE_PREPARED_DATA, index=False)
-    logger.info(f"Data saved to {SAVE_PREPARED_DATA}")
+    data.to_csv(PREPARED_DATA_PATH, index=False)
+    logger.info(f"Data saved to {PREPARED_DATA_PATH}")
 
     return data
