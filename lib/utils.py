@@ -107,11 +107,7 @@ def drop_ids_X_datasets(X_train, X_test, X_val, no_drop: list[str] = []):
     return X_train, X_test, X_val
 
 
-def get_X_y(
-    getter: Callable[[], pd.DataFrame] = partial(
-        get_ready_data, which="2019-2021"
-    ),
-) -> tuple[pd.DataFrame, pd.DataFrame]:
+def get_X_y(data: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
     Get the X and y datasets from the ready data.
 
@@ -123,10 +119,10 @@ def get_X_y(
         tuple[pd.DataFrame, pd.DataFrame]:
             Tuple of the X and y datasets, respectively.
     """
-    data_ready = getter()
+    data = data.copy()
 
-    X = data_ready.drop(columns=[TARGET_COLUMN])
-    y = data_ready[TARGET_COLUMN]
+    X = data.drop(columns=[TARGET_COLUMN])
+    y = data[TARGET_COLUMN]
 
     return X, y
 
@@ -158,7 +154,7 @@ def get_split_data(
             Tuple of the X_train, y_train, X_val, y_val, X_test, y_test datasets.
     """
     if X is None or y is None:
-        X, y = get_X_y()
+        raise ValueError("X and y must be provided.")
 
     X_train, y_train, X_val, y_val, X_test, y_test = split_by_ids(
         X,
