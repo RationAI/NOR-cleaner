@@ -34,7 +34,7 @@ from lib.column_names import (
     TARGET_COLUMN,
 )
 from lib.merge_records import drop_multi_cols, merge_groups_each_row
-from scripts.constants import SAVE_MERGED_DATA, SAVE_PREPARED_DATA, TAKE_RANGE
+from scripts.constants import MERGED_DATA_PATH, PREPARED_DATA_PATH, TAKE_RANGE
 
 logger = logging.getLogger(__name__)
 
@@ -112,7 +112,7 @@ def prepare_merged_data(data: pd.DataFrame | None = None) -> pd.DataFrame:
             the path `SAVE_PREPARED_DATA / PREPARED_DATA_FILENAME`.
     """
     if data is None:
-        data = pd.read_csv(SAVE_PREPARED_DATA)
+        data = pd.read_csv(PREPARED_DATA_PATH)
     else:
         # Copy the data to avoid modifying the original
         data = data.copy()
@@ -182,9 +182,9 @@ def prepare_merged_data(data: pd.DataFrame | None = None) -> pd.DataFrame:
 
     # Concat to one dataframe and save
     out = fold_merged_data(X_merged, y_merged, record_ids, patient_ids)
-    out.to_csv(SAVE_MERGED_DATA, index=False)
+    out.to_csv(MERGED_DATA_PATH, index=False)
 
-    logger.info(f"Saved data to {SAVE_MERGED_DATA}")
+    logger.info(f"Saved data to {MERGED_DATA_PATH}")
 
     return out
 
