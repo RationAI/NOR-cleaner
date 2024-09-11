@@ -23,12 +23,12 @@ def _check_dataset_type(which: DatasetType) -> None:
         raise ValueError(f"Invalid dataset type. Choose from: {DATASET_LIST}")
 
 
-def parse_dtypes(dtypes_csv: str) -> tuple[dict[str, str], list[str]]:
+def parse_dtypes(dtypes_csv: Path) -> tuple[dict[str, str], list[str]]:
     """
     Parse the dtypes file into a dictionary.
 
     Parameters:
-        dtypes_csv: str
+        dtypes_csv: Path
             Path to the dtypes file.
 
     Returns:
@@ -94,13 +94,13 @@ def get_ready_data(which: DatasetType) -> pd.DataFrame:
 
 
 def load_merged_data_from_csv(
-    path: str,
+    path: Path,
 ) -> tuple[pd.DataFrame, pd.Series, pd.DataFrame, pd.Series]:
     """
     Load the merged data from CSV files.
 
     Parameters:
-       path: str
+       path: Path
               Path to the merged data CSV file.
 
     Returns:
