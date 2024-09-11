@@ -3,9 +3,11 @@ File for parsing datasets into DataFrames.
 """
 
 import pickle
+from pathlib import Path
 
 import pandas as pd
 
+import data_preparation
 from data_preparation.fold_unfold_merged_data import unfold_merged_data
 from lib.dataset_names import (
     DATA_PREPROCESSED_FILENAME,
@@ -44,27 +46,23 @@ def parse_dtypes(dtypes_csv: str) -> tuple[dict[str, str], list[str]]:
     return dtype, parse_dates
 
 
-def get_original_dataset(which: DatasetType) -> pd.DataFrame:
+def get_original_dataset(path: Path) -> pd.DataFrame:
     """
     Parse the original dataset into a DataFrame.
     Requires to have the dtypes in data/data_dtypes.csv.
 
     Parameters:
-        dataset_csv: str
-            Path to the dataset file.
-
-        which: DatasetType
-            Which dataset to get.
+        path: Path
+            Path to the original dataset directory.
 
     Returns:
         pd.DataFrame:
             DataFrame of the dataset.
     """
-    dataset_path = get_dataset_directory(which)
-    dtype, parse_dates = parse_dtypes(f"{dataset_path}/data_dtypes.csv")
+    dtype, parse_dates = parse_dtypes(path / "data_dtypes.csv")
 
     dataset = pd.read_csv(
-        f"{dataset_path}/{ORIGINAL_DATASET_FILENAME}",
+        path / ORIGINAL_DATASET_FILENAME,
         dtype=dtype,
         parse_dates=parse_dates,
     )
