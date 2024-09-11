@@ -34,15 +34,12 @@ from lib.column_names import (
     TARGET_COLUMN,
 )
 from lib.merge_records import drop_multi_cols, merge_groups_each_row
-from scripts.constants import SAVE_MERGED_DATA, TAKE_RANGE
+from scripts.constants import SAVE_MERGED_DATA, SAVE_PREPARED_DATA, TAKE_RANGE
 
 logger = logging.getLogger(__name__)
 
 # Number of records that will be merged
 N_MERGED = TAKE_RANGE[1]
-
-MERGED_DIR = "merged_data"
-
 
 MULTI_COLS_TO_DROP = [PATIENT_ID_NAME, RECORD_COUNT_NAME]
 
@@ -104,11 +101,21 @@ REPORT_IDS_FILENAME = "record_ids"
 PATIENT_IDS_FILENAME = "patient_ids"
 
 
-def prepare_merged_data(data: pd.DataFrame, save_path: Path) -> pd.DataFrame:
+def prepare_merged_data(data: pd.DataFrame | None = None) -> pd.DataFrame:
     """
     Prepare the data for the model
+
+    Parameters:
+        data: pd.DataFrame | None
+            The DataFrame to prepare.
+            If None, the data will be loaded from
+            the path `SAVE_PREPARED_DATA / PREPARED_DATA_FILENAME`.
     """
-    data = data.copy()
+    if data is None:
+        data = pd.read_csv(SAVE_PREPARED_DATA)
+    else:
+        # Copy the data to avoid modifying the original
+        data = data.copy()
 
     # Check if there are any missing values
     if data.isna().sum().sum() != 0:
@@ -173,34 +180,17 @@ def prepare_merged_data(data: pd.DataFrame, save_path: Path) -> pd.DataFrame:
     if non_null_num != 0:
         raise ValueError(f"Number of null values: {non_null_num}")
 
-    # Save the data
-    SAVE_MERGED_DATA.mkdir(parents=True, exist_ok=True)
-
     # Concat to one dataframe and save
-    df = fold_merged_data(X_merged, y_merged, record_ids, patient_ids)
-
-    df.to_csv(SAVE_MERGED_DATA, index=False)
+    out = fold_merged_data(X_merged, y_merged, record_ids, patient_ids)
+    out.to_csv(SAVE_MERGED_DATA, index=False)
 
     logger.info(f"Saved data to {SAVE_MERGED_DATA}")
 
+    return out
+
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "dataset_type",
-        type=str,
-        help=f"The type of dataset to prepare. One of: {DATASET_LIST}",
-    )
-
-    args = parser.parse_args()
-    prepare_merged_data(args.dataset_type)
-
-    MERGED_FILE_PATH = (
-        get_dataset_directory(args.dataset_type)
-        / MERGED_DIR
-        / "merged_data.csv"
-    )
-    merged_data = pd.read_csv(MERGED_FILE_PATH)
+    merged_data = prepare_merged_data()
 
     X_merged, y_merged, record_ids, patient_ids = unfold_merged_data(
         merged_data
