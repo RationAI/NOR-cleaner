@@ -19,6 +19,17 @@ def fold_merged_data(
 def unfold_merged_data(
     merged_df: pd.DataFrame,
 ) -> tuple[pd.DataFrame, pd.Series, pd.DataFrame, pd.Series]:
+    """
+    Unfold the merged data to the original format.
+
+    Parameters:
+        merged_df: pd.DataFrame
+            The merged data.
+
+    Returns:
+        tuple[pd.DataFrame, pd.Series, pd.DataFrame, pd.Series]
+            The unfolded data -- `X`, `y`, `record_ids`, `patient_ids`.
+    """
 
     # Transform columns to multiindex
     merged_df.columns = pd.MultiIndex.from_tuples(
