@@ -33,14 +33,11 @@ from lib.column_names import (
     SENTINEL_LYMPH_NODE,
     TARGET_COLUMN,
 )
-from lib.dataset_names import DATASET_LIST, DatasetType, get_dataset_directory
-from lib.load_dataset import get_ready_data
 from lib.merge_records import drop_multi_cols, merge_groups_each_row
+from scripts.constants import SAVE_MERGED_DATA, TAKE_RANGE
 
 logger = logging.getLogger(__name__)
 
-# Take patients with RecordCount in the range
-TAKE_RANGE = (2, 3)
 # Number of records that will be merged
 N_MERGED = TAKE_RANGE[1]
 
@@ -107,45 +104,35 @@ REPORT_IDS_FILENAME = "record_ids"
 PATIENT_IDS_FILENAME = "patient_ids"
 
 
-def prepare_merged_data(dataset_type: DatasetType) -> None:
+def prepare_merged_data(data: pd.DataFrame, save_path: Path) -> pd.DataFrame:
     """
     Prepare the data for the model
     """
-    getter = partial(get_ready_data, which=dataset_type)
-    X, y = lib.utils.get_X_y(getter=getter)
-
-    # Drop records which were algorithmically filtered
-    if ALGO_FILTERED_COLUMN in X.columns:
-        X = X[X[ALGO_FILTERED_COLUMN] == 0]
-        X = X.drop(columns=ALGO_FILTERED_COLUMN)
-        y = y.loc[X.index]
-
-    if not X.index.equals(y.index):
-        raise ValueError("Indices are not the same for X and y.")
-
-    # Filter range of number of records per patient
-    X_reduced = pd.concat([X, y], axis=1)
-    X_reduced = X_reduced[
-        (X_reduced["RecordCount"] >= TAKE_RANGE[0])
-        & (X_reduced["RecordCount"] <= TAKE_RANGE[1])
-    ]
-
-    y_reduced = X_reduced[TARGET_COLUMN]
-    X_reduced.drop(columns=TARGET_COLUMN, inplace=True)
-
-    logger.info(
-        f"{len(X) - len(X_reduced)} rows removed after filtering by {RECORD_COUNT_NAME}."
-    )
+    data = data.copy()
 
     # Check if there are any missing values
-    if X.isna().sum().sum() != 0:
+    if data.isna().sum().sum() != 0:
         raise ValueError(
-            f"There are missing values in the data: {X.isna().sum().sum()} values."
+            f"There are missing values in the data: {data.isna().sum().sum()} values."
         )
 
-    FILLNA_DICT = init_fillna_dict(X_reduced)
+    # Drop records which were algorithmically filtered
+    if ALGO_FILTERED_COLUMN in data.columns:
+        data = data[data[ALGO_FILTERED_COLUMN] == 0]
+        data.drop(columns=ALGO_FILTERED_COLUMN, inplace=True)
+
+    # Filter range of number of records per patient
+    len_bef = len(data)
+    data = data[data[RECORD_COUNT_NAME].between(TAKE_RANGE[0], TAKE_RANGE[1])]
+    len_aft = len(data)
+
+    logger.info(
+        f"{len_bef - len_aft} rows removed after taking in range {TAKE_RANGE}"
+    )
+
+    FILLNA_DICT = init_fillna_dict(data)
     X_merged = merge_groups_each_row(
-        df=pd.concat([X_reduced, y_reduced], axis=1),
+        df=data,
         group_col=PATIENT_ID_NAME,
         n=N_MERGED,
         drop_padded_by=RECORD_COUNT_NAME,
@@ -165,7 +152,7 @@ def prepare_merged_data(dataset_type: DatasetType) -> None:
     patient_ids.name = (PATIENT_ID_NAME, 0)
 
     X_merged = drop_multi_cols(X_merged, MULTI_COLS_TO_DROP, N_MERGED)
-    # Drop column to predict
+    # Drop column to predict, record_id and patient_id
     X_merged.drop(
         columns=[TARGET_COLUMN, RECORD_ID_NAME, PATIENT_ID_NAME],
         inplace=True,
@@ -187,28 +174,14 @@ def prepare_merged_data(dataset_type: DatasetType) -> None:
         raise ValueError(f"Number of null values: {non_null_num}")
 
     # Save the data
-    TO_SAVE: Path = get_dataset_directory(dataset_type) / MERGED_DIR
-    TO_SAVE.mkdir(parents=True, exist_ok=True)
-
-    # for df, filename in [
-    #     (X_merged, X_MERGED_FILENAME),
-    #     (y_merged, PREDS_FILENAME),
-    #     (record_ids, REPORT_IDS_FILENAME),
-    #     (patient_ids, PATIENT_IDS_FILENAME),
-    # ]:
-    #     dump_df(df, f"{TO_SAVE}/{filename}.pkl")
+    SAVE_MERGED_DATA.mkdir(parents=True, exist_ok=True)
 
     # Concat to one dataframe and save
     df = fold_merged_data(X_merged, y_merged, record_ids, patient_ids)
 
-    df.to_csv(f"{TO_SAVE}/merged_data.csv", index=False)
+    df.to_csv(SAVE_MERGED_DATA, index=False)
 
-    logger.info(f"Saved data to {TO_SAVE}")
-
-
-def dump_df(df: pd.DataFrame, path: str) -> None:
-    with open(path, "wb") as f:
-        pickle.dump(df, f)
+    logger.info(f"Saved data to {SAVE_MERGED_DATA}")
 
 
 if __name__ == "__main__":

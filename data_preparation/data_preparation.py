@@ -5,6 +5,7 @@ File for data preparation
 import logging
 import pickle
 from functools import partial
+from pathlib import Path
 from typing import Callable
 
 import pandas as pd
@@ -69,25 +70,33 @@ def all_transformations(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def _save_data(data: pd.DataFrame, dataset_type: DatasetType) -> None:
+def _save_data(data: pd.DataFrame, save_path: Path) -> None:
     """
     Save the data to a pickle file
     """
-    data_preprocessed = (
-        f"{DATA_DIR}/{dataset_type}/{DATA_PREPROCESSED_FILENAME}"
-    )
-
-    with open(data_preprocessed, "wb") as f:
+    with open(save_path, "wb") as f:
         pickle.dump(data, f)
-        logger.info(f"Data saved to {data_preprocessed}")
+        logger.info(f"Data saved to {save_path}")
 
 
-def prepare_data(dataset_type: DatasetType) -> pd.DataFrame:
+def prepare_data(data: pd.DataFrame, save_path: Path) -> pd.DataFrame:
     """
-    Prepare the data for the model
+    Prepare the data for the model.
+
+    Parameters:
+        data: pd.DataFrame
+            The DataFrame to prepare.
+        save_path: Path
+            Path to save the prepared data.
+
+    Returns:
+        pd.DataFrame:
+            The prepared DataFrame.
     """
-    data = get_original_dataset(which=dataset_type)
-    logger.info(f"Data of type `{dataset_type}` loaded, shape: {data.shape}")
+    # Copy the data to avoid modifying the original
+    data = data.copy()
+
+    logger.info(f"Data loaded, shape: {data.shape}")
 
     # Check that all necessary columns are present
     check_columns(data)
@@ -124,6 +133,6 @@ def prepare_data(dataset_type: DatasetType) -> pd.DataFrame:
         )
 
     # Save the data
-    _save_data(data, dataset_type)
+    _save_data(data, save_path)
 
     return data
