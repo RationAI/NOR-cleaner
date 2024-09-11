@@ -9,7 +9,7 @@ import pandas as pd
 
 import data_preparation
 from data_preparation.data_merge import prepare_merged_data
-from data_preparation.data_preparation import prepare_data
+from data_preparation.data_preparation import preprocess_data
 from lib import LOG_CONFIG_KWARGS
 from scripts.constants import *
 
@@ -17,7 +17,7 @@ from scripts.constants import *
 logging.basicConfig(level=logging.INFO, **LOG_CONFIG_KWARGS)  # type: ignore
 
 
-def load_raw_data(path: Path) -> pd.DataFrame:
+def load_raw_data(path: Path | str) -> pd.DataFrame:
     """
     Load the raw data.
     Supported file formats: `.sav`, `.xlsx` and `.csv`.
@@ -32,6 +32,11 @@ def load_raw_data(path: Path) -> pd.DataFrame:
         pd.DataFrame:
             DataFrame of the raw data.
     """
+
+    # Convert the path to Path object if it is a string
+    if isinstance(path, str):
+        path = Path(path)
+
     SUPPORTED_FORMATS = [".sav", ".xlsx", ".csv"]
 
     data: pd.DataFrame | None = None
@@ -70,10 +75,10 @@ def main() -> None:
     data = load_raw_data(DATASET_PATH)
 
     # Prepare the data
-    data = prepare_data(data)
+    data = preprocess_data(data, save_path=PREPARED_DATA_PATH)
 
     # Merge the records
-    data = prepare_merged_data(data)
+    data = prepare_merged_data(data, save_path=MERGED_DATA_PATH)
 
 
 if __name__ == "__main__":

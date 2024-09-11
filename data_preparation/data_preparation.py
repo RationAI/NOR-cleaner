@@ -71,18 +71,29 @@ def all_transformations(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def prepare_data(data: pd.DataFrame) -> pd.DataFrame:
+def preprocess_data(
+    data: pd.DataFrame, save_path: Path | None = None
+) -> pd.DataFrame:
     """
-    Prepare the data for the model.
+    Prepare the data before merging the records.
+    This consists of:
+    - Algorithmic filtering of ICD-10 codes
+    - Dropping unnecessary columns
+    - Applying all transformations
+    - Saving the prepared data
 
     Parameters:
         data: pd.DataFrame
             The DataFrame to prepare.
+        save_path: Path | None
+            The path to save the prepared data.
+            If None, the data will not be saved.
 
     Returns:
         pd.DataFrame:
             The prepared DataFrame.
     """
+
     # Copy the data to avoid modifying the original
     data = data.copy()
 
@@ -123,7 +134,10 @@ def prepare_data(data: pd.DataFrame) -> pd.DataFrame:
         )
 
     # Save the data
-    data.to_csv(PREPARED_DATA_PATH, index=False)
-    logger.info(f"Data saved to {PREPARED_DATA_PATH}")
+    if save_path is None:
+        logger.info("No save path provided. The data will not be saved.")
+    else:
+        data.to_csv(save_path, index=False)
+        logger.info(f"Data saved to {save_path}")
 
     return data

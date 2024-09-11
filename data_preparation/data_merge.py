@@ -7,7 +7,6 @@ from pathlib import Path
 
 import pandas as pd
 
-import lib.utils
 from data_preparation.column_names import (
     ALGO_FILTERED_COLUMN,
     NOVELTY_RANK,
@@ -101,15 +100,25 @@ REPORT_IDS_FILENAME = "record_ids"
 PATIENT_IDS_FILENAME = "patient_ids"
 
 
-def prepare_merged_data(data: pd.DataFrame | None = None) -> pd.DataFrame:
+def prepare_merged_data(
+    data: pd.DataFrame | None = None, save_path: Path | None = None
+) -> pd.DataFrame:
     """
-    Prepare the data for the model
+    Merged records of preprocessed data into one row per patient.
 
     Parameters:
         data: pd.DataFrame | None
             The DataFrame to prepare.
             If None, the data will be loaded from
-            the path `SAVE_PREPARED_DATA / PREPARED_DATA_FILENAME`.
+            the path `PREPARED_DATA_PATH`.
+
+        save_path: Path | None
+            The path to save the prepared data.
+            If None, the data will not be saved.
+
+    Returns:
+        pd.DataFrame:
+            The prepared DataFrame.
     """
     if data is None:
         data = pd.read_csv(PREPARED_DATA_PATH)
@@ -182,9 +191,12 @@ def prepare_merged_data(data: pd.DataFrame | None = None) -> pd.DataFrame:
 
     # Concat to one dataframe and save
     out = fold_merged_data(X_merged, y_merged, record_ids, patient_ids)
-    out.to_csv(MERGED_DATA_PATH, index=False)
-
-    logger.info(f"Saved data to {MERGED_DATA_PATH}")
+    # Save the data
+    if save_path is None:
+        logger.info("No save path provided. The data will not be saved.")
+    else:
+        out.to_csv(MERGED_DATA_PATH, index=False)
+        logger.info(f"Saved data to {MERGED_DATA_PATH}")
 
     return out
 
