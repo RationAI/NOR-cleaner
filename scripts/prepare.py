@@ -10,13 +10,11 @@ import pandas as pd
 import data_preparation
 from data_preparation.data_merge import prepare_merged_data
 from data_preparation.data_preparation import prepare_data
+from lib import LOG_CONFIG_KWARGS
 from scripts.constants import *
 
 # Set up the logger
-# Format: LEVEL:__name__:TIME:MESSAGE
-logging.basicConfig(
-    level=logging.INFO, format="%(levelname)s:%(name)s:%(asctime)s:%(message)s"
-)
+logging.basicConfig(level=logging.INFO, **LOG_CONFIG_KWARGS)  # type: ignore
 
 
 def load_raw_data(path: Path) -> pd.DataFrame:
