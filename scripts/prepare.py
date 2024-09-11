@@ -21,8 +21,10 @@ logging.basicConfig(
 
 def load_raw_data(path: Path) -> pd.DataFrame:
     """
-    Load the raw data. The raw dataset is expected to contain the columns
-    that are checked in `check_columns()` function.
+    Load the raw data.
+    Supported file formats: `.sav`, `.xlsx` and `.csv`.
+    The raw dataset is expected to contain the columns that are checked
+    in `check_columns()` function.
 
     Parameters:
         path: Path
@@ -32,22 +34,28 @@ def load_raw_data(path: Path) -> pd.DataFrame:
         pd.DataFrame:
             DataFrame of the raw data.
     """
-    if path.suffix not in [".sav", ".xlsx"]:
-        raise ValueError(
-            f"Unsupported file format. Use `.sav` or `.xlsx`. Got suffix `{path.suffix}`."
-        )
+    SUPPORTED_FORMATS = [".sav", ".xlsx", ".csv"]
 
     data: pd.DataFrame | None = None
     if path.suffix == ".sav":
         data = pd.read_spss(str(path))
-    else:
+    elif path.suffix == ".xlsx":
         data = pd.read_excel(path, engine="openpyxl")
+    elif path.suffix == ".csv":
+        data = pd.read_csv(path)
+    else:
+        raise ValueError(
+            f"Unsupported file format. Use one of {SUPPORTED_FORMATS}. Got suffix `{path.suffix}`."
+        )
 
     VYPORADENI_CATEGORY = "vyporadani_kat"
     if VYPORADENI_CATEGORY in data.columns:
-        raise ValueError(
-            f"The dataset contains the column {VYPORADENI_CATEGORY}. Remove it."
-        )
+        if data[VYPORADENI_CATEGORY].nunique() == 1:
+            data.drop(columns=[VYPORADENI_CATEGORY], inplace=True)
+        else:
+            raise ValueError(
+                f"The dataset contains the column `{VYPORADENI_CATEGORY}` with more than one unique value."
+            )
 
     # Check if all necessary columns are present in the DataFrame
     data_preparation.check_columns(data)
@@ -64,10 +72,10 @@ def main() -> None:
     data = load_raw_data(DATASET_PATH)
 
     # Prepare the data
-    data = prepare_data(data, SAVE_PREPARED_DATA)
+    data = prepare_data(data)
 
     # Merge the records
-    data = prepare_merged_data(data, SAVE_MERGED_DATA)
+    data = prepare_merged_data(data)
 
 
 if __name__ == "__main__":
