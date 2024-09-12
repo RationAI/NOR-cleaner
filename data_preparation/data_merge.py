@@ -65,11 +65,11 @@ DONT_TAKE_COLS_FEATURE_DIFF = [
 
 
 def all_merged_transformations(df: pd.DataFrame) -> pd.DataFrame:
-    COLS_EQUAL_COUNT = [
+    cols_equal_count = [
         col for col, _ in df.columns if col not in DONT_TAKE_COLS_EQUAL_COUNT
     ]
 
-    COLS_FEATURE_DIFF = [
+    cols_feature_diff = [
         col for col, _ in df.columns if col not in DONT_TAKE_COLS_FEATURE_DIFF
     ]
 
@@ -77,8 +77,8 @@ def all_merged_transformations(df: pd.DataFrame) -> pd.DataFrame:
         partial(any_c76_c80_check, n=N_MERGED),
         # partial(equality_of_dg_codes, n=N_MERGED),
         # partial(records_equal, n=N_MERGED),
-        partial(add_cols_equal, cols=COLS_EQUAL_COUNT, n=N_MERGED),
-        partial(feature_difference, cols=COLS_FEATURE_DIFF, n=N_MERGED),
+        partial(add_cols_equal, cols=cols_equal_count, n=N_MERGED),
+        partial(feature_difference, cols=cols_feature_diff, n=N_MERGED),
         # partial(
         #     difference_in_dates,
         #     n=N_MERGED,
