@@ -5,4 +5,6 @@ LOG_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 LOG_CONFIG_KWARGS = {
     "format": LOG_FORMAT,
     "datefmt": LOG_DATE_FORMAT,
+    "filename": "logs/log.log",
+    "filemode": "a",
 }
