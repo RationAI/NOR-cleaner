@@ -4,9 +4,10 @@ This file contains the constants used in the scripts.
 
 from pathlib import Path
 
+# TODO: Set paths to dummy values
 # Set path to the raw data
 # By default, the data is stored in the data/ directory
-DATASET_PATH: Path = Path("data/tmp_test/data_by_expert.csv")
+DATASET_PATH: Path = Path("data", "tmp_test", "data_by_expert.csv")
 # The path to the file with prepared data
 PREPARED_DATA_PATH: Path = Path("data", "tmp_test", "prepared_data.csv")
 # The path to the file with merged data -> the final dataset
