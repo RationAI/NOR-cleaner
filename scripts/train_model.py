@@ -10,6 +10,7 @@ import xgboost as xgb
 import data_preparation
 from lib import LOG_CONFIG_KWARGS
 from lib.column_names import TARGET_COLUMN
+from lib.load_dataset import load_merged_data_from_csv
 from model.hyperparams import get_xgbc_hyperparams
 from scripts.constants import *
 
@@ -25,9 +26,8 @@ def main() -> None:
 
     # Load the data
     logger.info("Loading the data...")
-    X, y, _, _ = data_preparation.unfold_merged_data(
-        pd.read_csv(MERGED_DATA_PATH)
-    )
+    X, y, _, _ = load_merged_data_from_csv(MERGED_DATA_PATH)
+
     logger.info(f"Data loaded, X shape: {X.shape}, y shape: {y.shape}")
 
     # Train the model
