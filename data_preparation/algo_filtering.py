@@ -95,7 +95,9 @@ def _drop_records_with_lower_score(
 
     record_ids_left_out: list[int] = []
 
-    for _, group in tqdm(df.groupby(PATIENT_ID_NAME)):
+    for _, group in tqdm(
+        df.groupby(PATIENT_ID_NAME), desc="Filtering records"
+    ):
         # Get unique ICD-10 codes
         codes_three = set(group["icd_three"].unique())
         codes_four = set(group[ICD_CODE_NAME].unique())
