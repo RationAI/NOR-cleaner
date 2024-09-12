@@ -1,7 +1,10 @@
 import itertools
+import logging
 from typing import Any
 
 import pandas as pd
+
+logger = logging.getLogger(__name__)
 
 
 def merge_entries(
@@ -45,7 +48,7 @@ def merge_entries(
     else:
         for col, fill in fillna.items():
             if col not in df.columns:
-                print(f"{col} not in columns")
+                logger.warning(f"Merging entries: {col} not in columns")
                 continue
 
             for i in range(n):
@@ -69,8 +72,10 @@ def swap_indices(indices: list, ids1: list, ids2: list) -> list:
     ids2: list of ids to swap
     """
     if len(ids1) != len(ids2):
-        raise ValueError(f"Lengths of ids1 and ids2 must be equal: {len(ids1)} != {len(ids2)}")
-    
+        raise ValueError(
+            f"Lengths of ids1 and ids2 must be equal: {len(ids1)} != {len(ids2)}"
+        )
+
     if (x := len(set(indices))) != len(indices):
         raise ValueError(f"Indices must be unique: {x} != {len(indices)}")
 
@@ -265,7 +270,7 @@ def augment_merged_x_y_df(
 def augment_merged_df(merged_df: pd.DataFrame, n: int) -> pd.DataFrame:
 
     permutation_list: list[int] = [i for i in range(1, n)]
-    permutations: list[tuple[int]] = []
+    permutations: list[tuple[int, ...]] = []
 
     for perm in itertools.permutations(permutation_list):
         add = [0] + list(perm)
@@ -332,7 +337,9 @@ def drop_multi_cols(
     # Drop all except the zeroth one
     for col in cols:
         if col not in merged_df.columns:
-            print(f"Warning: Column {col} not in dataframe")
+            logger.warning(
+                f"Dropping multi columns: Column {col} not in dataframe"
+            )
             continue
 
         merged_df = merged_df.loc[
