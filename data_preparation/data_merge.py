@@ -141,14 +141,14 @@ def prepare_merged_data(
         f"{len_bef - len_aft} rows removed after taking in range {TAKE_RANGE}"
     )
 
-    FILLNA_DICT = init_fillna_dict(data)
+    fillna_dict = init_fillna_dict(data)
     X_merged = merge_groups_each_row(
         df=data,
         group_col=PATIENT_ID_NAME,
         n=N_MERGED,
         drop_padded_by=RECORD_COUNT_NAME,
-        null_value=FILLNA_DICT[RECORD_COUNT_NAME],
-        fillna=FILLNA_DICT,
+        null_value=fillna_dict[RECORD_COUNT_NAME],
+        fillna=fillna_dict,
     ).sort_index()
 
     y_merged = pd.Series(0, index=X_merged.index, name=(TARGET_COLUMN, 0))
