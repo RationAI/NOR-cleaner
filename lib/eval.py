@@ -422,7 +422,9 @@ def cross_validation_merged_df(
     )
 
     for train_index, test_index in tqdm(
-        skf.split(X_merged, y, groups=groups), total=n_splits
+        skf.split(X_merged, y, groups=groups),
+        total=n_splits,
+        desc="Cross Validation",
     ):
         # Split the data into train and test folds
         X_train = X_merged.iloc[train_index]
