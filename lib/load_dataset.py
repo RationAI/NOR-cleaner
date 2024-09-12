@@ -2,11 +2,13 @@
 File for parsing datasets into DataFrames.
 """
 
+import logging
 import pickle
 from pathlib import Path
 
 import pandas as pd
 
+import data_preparation
 from data_preparation.fold_unfold_merged_data import unfold_merged_data
 from lib.dataset_names import (
     DATA_PREPROCESSED_FILENAME,
@@ -15,6 +17,8 @@ from lib.dataset_names import (
     DatasetType,
     get_dataset_directory,
 )
+
+logger = logging.getLogger(__name__)
 
 
 def _check_dataset_type(which: DatasetType) -> None:
@@ -45,23 +49,38 @@ def parse_dtypes(dtypes_csv: Path) -> tuple[dict[str, str], list[str]]:
     return dtype, parse_dates
 
 
+# Exception for missing dtypes file
+class DTypesNotPresentError(Exception):
+    pass
+
+
 def get_original_dataset(path: Path) -> pd.DataFrame:
     """
     Parse the original dataset into a DataFrame.
-    Requires to have the dtypes in data/data_dtypes.csv.
+    Requires to have the dtypes data_dtypes.csv in the same directory.
 
     Parameters:
         path: Path
-            Path to the original dataset directory.
+            Path to the original dataset.
 
     Returns:
         pd.DataFrame:
             DataFrame of the dataset.
     """
-    dtype, parse_dates = parse_dtypes(path / "data_dtypes.csv")
+    if path.suffix != ".csv":
+        raise ValueError(f"The file must be a CSV file. Got: {path.suffix}")
+
+    # Check if the dtypes file is present
+    dtypes_path = path.parent / "data_dtypes.csv"
+    if not dtypes_path.exists():
+        raise DTypesNotPresentError(
+            f"The dtypes file is missing. Expected at: {dtypes_path}"
+        )
+
+    dtype, parse_dates = parse_dtypes(dtypes_path)
 
     dataset = pd.read_csv(
-        path / ORIGINAL_DATASET_FILENAME,
+        path,
         dtype=dtype,
         parse_dates=parse_dates,
     )
@@ -141,6 +160,66 @@ def load_merged_data(
     patient_ids = unpickle_data(patient_ids_file)
 
     return X_merged, y_merged, report_ids, patient_ids
+
+
+def load_raw_data(path: Path | str) -> pd.DataFrame:
+    """
+    Load the raw data.
+    Supported file formats: `.sav`, `.xlsx` and `.csv`.
+    The raw dataset is expected to contain the columns that are checked
+    in `check_columns()` function.
+
+    Parameters:
+        path: Path
+            Path to the raw data directory.
+
+    Returns:
+        pd.DataFrame:
+            DataFrame of the raw data.
+    """
+
+    # Convert the path to Path object if it is a string
+    if isinstance(path, str):
+        path = Path(path)
+
+    SUPPORTED_FORMATS = [".sav", ".xlsx", ".csv"]
+
+    data: pd.DataFrame | None = None
+    if path.suffix == ".sav":
+        data = pd.read_spss(str(path))
+    elif path.suffix == ".xlsx":
+        data = pd.read_excel(path, engine="openpyxl")
+    elif path.suffix == ".csv":
+        # Attempt to load the original dataset with the dtypes
+        try:
+            data = get_original_dataset(path)
+            logger.info("The dataset was loaded with the dtypes.")
+        except DTypesNotPresentError:
+            logger.warning(
+                "The dtypes file is missing. The data types will be inferred."
+            )
+            # Otherwise, load the dataset without the dtypes
+            data = pd.read_csv(path)
+    else:
+        raise ValueError(
+            f"Unsupported file format. Use one of {SUPPORTED_FORMATS}. Got suffix `{path.suffix}`."
+        )
+
+    VYPORADENI_CATEGORY = "vyporadani_kat"
+    if VYPORADENI_CATEGORY in data.columns:
+        if data[VYPORADENI_CATEGORY].nunique() == 1:
+            data.drop(columns=[VYPORADENI_CATEGORY], inplace=True)
+        else:
+            raise ValueError(
+                f"The dataset contains the column `{VYPORADENI_CATEGORY}` with more than one unique value."
+            )
+
+    # Check if all necessary columns are present in the DataFrame
+    data_preparation.check_columns(data)
+
+    logger.info(f"Loaded the raw dataset with shape: {data.shape}")
+
+    return data
 
 
 if __name__ == "__main__":
