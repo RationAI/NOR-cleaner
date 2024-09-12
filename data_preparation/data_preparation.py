@@ -17,6 +17,7 @@ from data_preparation.feature_transformation import (
     cols_to_int,
     count_records_per_patient,
     count_unknown_values,
+    empty_to_nan,
     fill_nan_to_zero,
     transform_all_tnm,
     transform_date,
@@ -34,9 +35,6 @@ from data_preparation.feature_transformation import (
 )
 from data_preparation.translate_english import df_english_translation
 from lib.column_names import TARGET_COLUMN
-from lib.dataset_names import DATA_DIR, DATA_PREPROCESSED_FILENAME, DatasetType
-from lib.load_dataset import get_original_dataset
-from scripts.constants import PREPARED_DATA_PATH
 
 logger = logging.getLogger(__name__)
 
@@ -44,6 +42,7 @@ logger = logging.getLogger(__name__)
 def all_transformations(df: pd.DataFrame) -> pd.DataFrame:
     PIPELINE: list[Callable[[pd.DataFrame], pd.DataFrame]] = [
         drop_columns,
+        empty_to_nan,
         fill_nan_to_zero,
         cols_to_int,
         transform_pn_examination_cols,

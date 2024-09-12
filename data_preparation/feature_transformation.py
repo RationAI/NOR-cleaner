@@ -895,6 +895,25 @@ def transform_pn_examination_cols(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
+def empty_to_nan(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Replace empty strings with NaN values.
+
+    Parameters:
+        df: pd.DataFrame
+            DataFrame with the data.
+
+    Returns:
+        pd.DataFrame
+            DataFrame with empty strings replaced with NaN values.
+    """
+    df = df.copy()
+
+    df.replace("", np.nan, inplace=True)
+
+    return df
+
+
 def fill_nan_to_zero(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
 
