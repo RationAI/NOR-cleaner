@@ -63,52 +63,6 @@ def merge_entries(
     return df_pivot
 
 
-def swap_indices(indices: list, ids1: list, ids2: list) -> list:
-    """
-    Swap the indices of ids1 and ids2 in indices.
-    Parameters:
-    indices: list of indices
-    ids1: list of ids to swap
-    ids2: list of ids to swap
-    """
-    if len(ids1) != len(ids2):
-        raise ValueError(
-            f"Lengths of ids1 and ids2 must be equal: {len(ids1)} != {len(ids2)}"
-        )
-
-    if (x := len(set(indices))) != len(indices):
-        raise ValueError(f"Indices must be unique: {x} != {len(indices)}")
-
-    pos1 = []
-    pos2 = []
-
-    k1 = 0
-    k2 = 0
-    for i, idx in enumerate(indices):
-        if k1 < len(ids1) and idx == ids1[k1]:
-            pos1.append(i)
-            k1 += 1
-        elif k2 < len(ids2) and idx == ids2[k2]:
-            pos2.append(i)
-            k2 += 1
-
-    assert len(pos1) == len(
-        ids1
-    ), f"All ids1 must be present in indices: {len(pos1)} != {len(ids1)}"
-
-    assert len(pos2) == len(
-        ids2
-    ), f"All ids2 must be present in indices: {len(pos2)} != {len(ids2)}"
-
-    # Create a copy of the indices
-    indices = indices.copy()
-
-    for pos1, pos2 in zip(pos1, pos2):
-        indices[pos1], indices[pos2] = indices[pos2], indices[pos1]
-
-    return indices
-
-
 def swap_columns(df: pd.DataFrame, col1: Any, col2: Any) -> pd.DataFrame:
     """
     Swap two columns of a dataframe. Only swap the values, not the column names.
