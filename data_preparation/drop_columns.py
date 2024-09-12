@@ -2,8 +2,12 @@
 Drop Columns
 """
 
-import pandas as pd
 import logging
+
+import pandas as pd
+
+# Set up the logger
+logger = logging.getLogger(__name__)
 
 # fmt: off
 NULL_COLUMNS = [
@@ -121,12 +125,12 @@ def drop_columns(data: pd.DataFrame) -> pd.DataFrame:
     filtered_cols = []
     for col in cols_to_drop:
         if col not in data.columns:
-            logging.warning(f"Column {col} not in the dataset")
+            logger.warning(f"Column {col} not in the dataset")
         else:
             filtered_cols.append(col)
 
     data_columns_dropped = data.drop(columns=filtered_cols)
 
-    logging.info(f"Shape after dropping columns: {data_columns_dropped.shape}")
+    logger.info(f"Shape after dropping columns: {data_columns_dropped.shape}")
 
     return data_columns_dropped
