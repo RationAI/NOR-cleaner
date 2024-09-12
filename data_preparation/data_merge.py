@@ -101,16 +101,14 @@ PATIENT_IDS_FILENAME = "patient_ids"
 
 
 def prepare_merged_data(
-    data: pd.DataFrame | None = None, save_path: Path | None = None
+    data: pd.DataFrame, save_path: Path | None = None
 ) -> pd.DataFrame:
     """
     Merged records of preprocessed data into one row per patient.
 
     Parameters:
-        data: pd.DataFrame | None
+        data: pd.DataFrame
             The DataFrame to prepare.
-            If None, the data will be loaded from
-            the path `PREPARED_DATA_PATH`.
 
         save_path: Path | None
             The path to save the prepared data.
@@ -120,11 +118,8 @@ def prepare_merged_data(
         pd.DataFrame:
             The prepared DataFrame.
     """
-    if data is None:
-        data = pd.read_csv(PREPARED_DATA_PATH)
-    else:
-        # Copy the data to avoid modifying the original
-        data = data.copy()
+    # Copy the data to avoid modifying the original
+    data = data.copy()
 
     # Check if there are any missing values
     if data.isna().sum().sum() != 0:
@@ -180,15 +175,20 @@ def prepare_merged_data(
         inplace=True,
     )
 
-    # Transform float columns to int
-    float_cols = X_merged.select_dtypes(include=float).columns
-    X_merged[float_cols] = X_merged[float_cols].astype(int)
-
     logger.info(
         f"Shape after dropping columns: {X_merged.shape}, {y_merged.shape}"
     )
 
+    # Transform float columns to int
+    logger.info(
+        "Transforming ALL float columns to int. All columns are expected to be integers."
+    )
+    float_cols = X_merged.select_dtypes(include=float).columns
+    X_merged[float_cols] = X_merged[float_cols].astype(int)
+
+    logger.info("Transforming merged data...")
     X_merged = all_merged_transformations(X_merged)
+    logger.info("Merged data transformed.")
 
     # Check if there are any missing values
     non_null_num = X_merged.isnull().sum().sum()
@@ -208,7 +208,8 @@ def prepare_merged_data(
 
 
 if __name__ == "__main__":
-    merged_data = prepare_merged_data()
+    # Load prepared data and merge records
+    merged_data = prepare_merged_data(pd.read_csv(PREPARED_DATA_PATH))
 
     X_merged, y_merged, record_ids, patient_ids = unfold_merged_data(
         merged_data
