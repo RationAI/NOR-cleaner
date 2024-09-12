@@ -16,6 +16,8 @@ from lib.eval import (
     process_each_records_scores,
     process_scoring_dict,
 )
+from lib.load_dataset import load_merged_data_from_csv
+from model.hyperparams import get_xgbc_hyperparams
 from scripts.constants import *
 
 logging.basicConfig(level=logging.INFO, **LOG_CONFIG_KWARGS)  # type: ignore
@@ -31,14 +33,12 @@ def main() -> None:
     # Cross-validation
     # Load merged data
     logger.info("Loading the merged data...")
-    data = pd.read_csv(MERGED_DATA_PATH)
-
-    X, y, _, patient_ids = unfold_merged_data(data)
+    X, y, _, patient_ids = load_merged_data_from_csv(MERGED_DATA_PATH)
 
     # Load the model
     logger.info("Loading the model...")
-    model = xgb.XGBClassifier()
-    model.load_model(MODEL_PATH)
+    model = xgb.XGBClassifier(**get_xgbc_hyperparams())
+    # model.load_model(MODEL_PATH)
 
     # Evaluate the model
     logger.info("Evaluating the model...")
@@ -49,6 +49,7 @@ def main() -> None:
         X_merged=X,
         y=y,
         groups=patient_ids,
+        augment_data=False,
         each_record_eval=True,
         random_state=42,
         record_count_getter=lambda X: X[RECORD_COUNT_NAME, 0],
@@ -57,6 +58,7 @@ def main() -> None:
     )
 
     # Log the results
+    # TODO: Resolve the types
     logger.info(f"Results:\n{process_scoring_dict(scores)}")  # type: ignore
     logger.info(f"Results for each record:\n{process_each_records_scores(each_scores)}")  # type: ignore
 
