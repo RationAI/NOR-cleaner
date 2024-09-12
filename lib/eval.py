@@ -15,7 +15,7 @@ from sklearn.model_selection import StratifiedGroupKFold, cross_validate
 from tqdm import tqdm
 
 from data_preparation.column_names import RECORD_COUNT_NAME
-from lib.merge_records import augment_merged_x_y_df
+from data_preparation.merge_records import augment_merged_x_y_df
 
 sns.set_theme()
 

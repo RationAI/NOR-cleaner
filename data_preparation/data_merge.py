@@ -16,6 +16,10 @@ from data_preparation.fold_unfold_merged_data import (
     fold_merged_data,
     unfold_merged_data,
 )
+from data_preparation.merge_records import (
+    drop_multi_cols,
+    merge_groups_each_row,
+)
 from data_preparation.merged_transformation import (
     add_cols_equal,
     any_c76_c80_check,
@@ -32,7 +36,6 @@ from lib.column_names import (
     SENTINEL_LYMPH_NODE,
     TARGET_COLUMN,
 )
-from lib.merge_records import drop_multi_cols, merge_groups_each_row
 from scripts.constants import MERGED_DATA_PATH, PREPARED_DATA_PATH, TAKE_RANGE
 
 logger = logging.getLogger(__name__)

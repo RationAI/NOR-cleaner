@@ -7,7 +7,6 @@ from pathlib import Path
 
 import pandas as pd
 
-import data_preparation
 from data_preparation.data_merge import prepare_merged_data
 from data_preparation.preprocess_data import preprocess_data
 from lib import LOG_CONFIG_KWARGS
