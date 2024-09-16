@@ -29,15 +29,20 @@ pip install .
 
 ## Usage
 
-### Windows
-Run the file `run.bat`.
+In terminal, run the command:
+```bash
+nor-cleaner [-h] {prepare,train,predict,evaluate} ...
+```
 
-### Linux
-Run the command:
+E.g.:
 ```bash
-nor-cleaner run
+nor-cleaner prepare
 ```
-For more information, run:
-```bash
-nor-cleaner -h
-```
+
+**NOTE:** use the constants file in `scripts/constants.py` to set paths and other parameters.
+
+### Arguments
+- `prepare` - Prepare the data for training.
+- `train` - Train the model.
+- `predict` - Predict the duplicities.
+- `evaluate` - Evaluate the model.
