@@ -55,6 +55,9 @@ def main():
         # Print help message
         parser.print_help()
 
+    # Add empty line for better readability
+    logger.info("")
+
 
 if __name__ == "__main__":
     main()
