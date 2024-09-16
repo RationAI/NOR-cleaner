@@ -1,11 +1,10 @@
-import pandas as pd
-import numpy as np
-
 from typing import Any
 
+import numpy as np
+import pandas as pd
 from sklearn.model_selection import StratifiedKFold
 
-from lib.merge_records import augment_merged_x_y_df
+from data_preparation.merge_records import augment_merged_x_y_df
 
 
 def get_wrong_preds_cross_val(
@@ -61,7 +60,7 @@ def get_wrong_preds_cross_val(
         y_test = y.iloc[test_index]
 
         if augment_data:
-            X_train, y_train =  augment_merged_x_y_df(X_train, y_train, n)
+            X_train, y_train = augment_merged_x_y_df(X_train, y_train, n)
 
         # Fit the model on the train fold
         model.fit(X_train, y_train)
@@ -69,9 +68,7 @@ def get_wrong_preds_cross_val(
         # Predict on the test fold
         preds = model.predict(X_test)
 
-        wrong_preds_df = (
-            X_test[y_test != preds].index.to_frame(name="index")
-        )
+        wrong_preds_df = X_test[y_test != preds].index.to_frame(name="index")
 
         if add_proba:
             positive_preds = model.predict_proba(X_test)[:, 1]

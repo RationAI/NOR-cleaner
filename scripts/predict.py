@@ -14,10 +14,9 @@ from data_preparation import (
 )
 from lib import LOG_CONFIG_KWARGS
 from lib.column_names import TARGET_COLUMN
+from model.hyperparams import get_xgbc_hyperparams
 from scripts.constants import *
 from scripts.prepare import load_raw_data
-
-logging.basicConfig(level=logging.INFO, **LOG_CONFIG_KWARGS)  # type: ignore
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +39,7 @@ def main() -> None:
 
     # Load the model
     logger.info("Loading the model...")
-    model = xgb.XGBClassifier()
+    model = xgb.XGBClassifier(**get_xgbc_hyperparams())
     model.load_model(MODEL_PATH)
 
     # Predict the target variable
@@ -56,4 +55,5 @@ def main() -> None:
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO, **LOG_CONFIG_KWARGS)  # type: ignore
     main()

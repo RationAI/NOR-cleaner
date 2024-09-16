@@ -20,8 +20,6 @@ from lib.load_dataset import load_merged_data_from_csv
 from model.hyperparams import get_xgbc_hyperparams
 from scripts.constants import *
 
-logging.basicConfig(level=logging.INFO, **LOG_CONFIG_KWARGS)  # type: ignore
-
 logger = logging.getLogger(__name__)
 
 
@@ -64,4 +62,5 @@ def main() -> None:
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO, **LOG_CONFIG_KWARGS)  # type: ignore
     main()
