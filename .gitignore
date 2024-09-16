@@ -1,6 +1,9 @@
 # Ignore data directory
 data/*
 
+# Jupyter notebooks
+ipynbs/*
+
 # Do not ignore .gitkeep
 !.gitkeep
 
