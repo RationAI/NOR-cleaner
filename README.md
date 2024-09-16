@@ -44,5 +44,5 @@ nor-cleaner prepare
 ### Arguments
 - `prepare` - Prepare the data for training.
 - `train` - Train the model.
-- `predict` - Predict the duplicities.
+- `predict` - Predict whether to preserve or drop a record.
 - `evaluate` - Evaluate the model.
