@@ -3,6 +3,7 @@ import logging
 
 import scripts.evaluate
 import scripts.predict
+import scripts.prepare
 import scripts.train_model
 from lib import LOG_CONFIG_KWARGS
 
@@ -31,17 +32,25 @@ def main():
         "predict", help="Predict the target variable"
     )
 
+    # Add `evaluate` command
+    evaluate_parser = subparsers.add_parser(
+        "evaluate", help="Evaluate the model performance"
+    )
+
     args = parser.parse_args()
 
     if args.command == "prepare":
         logger.info("Preparing the data...")
-        scripts.evaluate.main()
+        scripts.prepare.main()
     elif args.command == "train":
         logger.info("Training the model...")
         scripts.train_model.main()
     elif args.command == "predict":
         logger.info("Predicting the target variable...")
         scripts.predict.main()
+    elif args.command == "evaluate":
+        logger.info("Evaluating the model performance...")
+        scripts.evaluate.main()
     else:
         # Print help message
         parser.print_help()
