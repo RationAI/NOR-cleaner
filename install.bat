@@ -4,7 +4,7 @@
 python -m venv venv
 
 @REM Activate virtual environment
-venv\Scripts\Activate.ps1
+.\venv\Scripts\Activate.ps1
 
 @REM Install dependencies
 pip install .
