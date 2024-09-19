@@ -1,23 +1,42 @@
 """
 This file contains the constants used in the scripts.
+Mainly, the paths to the data files.
 """
 
 from pathlib import Path
 
-# TODO: Set paths to dummy values
+# The data are stored in the data/ directory
+
 # Set path to the raw data
-# By default, the data is stored in the data/ directory
-DATASET_PATH: Path = Path("data", "tmp_test", "data_by_expert.csv")
-# The path to the file with prepared data
-PREPARED_DATA_PATH: Path = Path("data", "tmp_test", "prepared_data.csv")
-# The path to the file with merged data -> the final dataset
-MERGED_DATA_PATH: Path = Path("data", "tmp_test", "merged_data.csv")
-# The path to the file with the model
-MODEL_PATH: Path = Path("data", "tmp_test", "model.json")
-# The path to the file with new raw data to predict
-PREDICT_DATA_PATH: Path = Path("data", "tmp_test", "predict_data.csv")
-# The path to the file with predictions
-PREDICTIONS_PATH: Path = Path("data", "tmp_test", "predictions.csv")
+DATASET_PATH: Path = Path(
+    # INSERT THE PATH TO THE RAW DATA
+    "data/PATH/TO/DATA.csv"
+)
+# The path to the file where the prepared data will be saved
+PREPARED_DATA_PATH: Path = Path(
+    # INSERT THE PATH TO THE PREPARED DATA
+    "data/PATH/TO/PREPARED_DATA.csv"
+)
+# The path to to save the merged data -> the final dataset for training
+MERGED_DATA_PATH: Path = Path(
+    # INSERT THE PATH TO THE MERGED DATA
+    "data/PATH/TO/MERGED_DATA.csv"
+)
+# The path to the file where the model will be saved or loaded from
+MODEL_PATH: Path = Path(
+    # INSERT THE PATH TO THE MODEL
+    "data/PATH/TO/MODEL.json"
+)
+# The path to the file with new raw data to predict on
+PREDICT_DATA_PATH: Path = Path(
+    # INSERT THE PATH TO THE RAW DATA TO PREDICT
+    "data/PATH/TO/PREDICT_DATA.csv"
+)
+# The path to the file where the predictions will be saved
+PREDICTIONS_PATH: Path = Path(
+    # INSERT THE PATH TO THE PREDICTIONS
+    "data/PATH/TO/PREDICTIONS.csv"
+)
 
 # Take patients with RecordCount in the range [a, b] (inclusive)
 # In this case, we take patients with 2 or 3 records
