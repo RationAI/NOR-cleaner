@@ -9,7 +9,10 @@ Bachelor's thesis about this project is available [here](https://is.muni.cz/th/l
 Clone the repository.
 
 ### Windows
-Run the file `install.bat`.
+Run the file `install.ps1` either by right-clicking and selecting `Run with PowerShell` or by running the command:
+```powershell
+.\install.ps1
+```
 
 ### Linux
 Create a virtual environment and activate it (optional but recommended):
