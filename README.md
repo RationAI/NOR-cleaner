@@ -9,7 +9,7 @@ Bachelor's thesis about this project is available [here](https://is.muni.cz/th/l
 Clone the repository.
 
 ### Windows
-Run the file `install.ps1` either by right-clicking and selecting `Run with PowerShell` or by running the command:
+Run the file `install.ps1` either by right-clicking and selecting `Run with PowerShell` or by running the command in PowerShell:
 ```powershell
 .\install.ps1
 ```
