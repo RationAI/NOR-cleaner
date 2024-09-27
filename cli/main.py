@@ -39,6 +39,7 @@ def main():
 
     args = parser.parse_args()
 
+    call_help = False
     if args.command == "prepare":
         logger.info("Preparing the data...")
         scripts.prepare.main()
@@ -53,9 +54,11 @@ def main():
         scripts.evaluate.main()
     else:
         # Print help message
+        call_help = True
         parser.print_help()
 
-    logger.info("Done!")
+    if not call_help:
+        logger.info("Done!")
 
 
 if __name__ == "__main__":

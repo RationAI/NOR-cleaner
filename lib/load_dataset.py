@@ -5,25 +5,25 @@ File for parsing datasets into DataFrames.
 import logging
 import pickle
 from pathlib import Path
+from typing import Literal
 
 import pandas as pd
 
 import data_preparation
 from data_preparation.fold_unfold_merged_data import unfold_merged_data
-from lib.dataset_names import (
-    DATA_PREPROCESSED_FILENAME,
-    DATASET_LIST,
-    ORIGINAL_DATASET_FILENAME,
-    DatasetType,
-    get_dataset_directory,
-)
+
+DATA_DIR = "data"
 
 logger = logging.getLogger(__name__)
 
-
-def _check_dataset_type(which: DatasetType) -> None:
-    if which not in DATASET_LIST:
-        raise ValueError(f"Invalid dataset type. Choose from: {DATASET_LIST}")
+"""
+DatasetType
+    Type of dataset. It can be one of the following:
+        - "2019-2021"      -- Dataset of records from 2019 to 2021.
+        - "2022"           -- Dataset records from 2019 to 2022.
+        - "verify_dataset" -- Dataset of new records to test the model.
+"""
+DatasetType = Literal["2019-2021", "2022", "verify_dataset"]
 
 
 def parse_dtypes(dtypes_csv: Path) -> tuple[dict[str, str], list[str]]:
@@ -93,24 +93,6 @@ def unpickle_data(path: str) -> pd.DataFrame:
         return pickle.load(f)
 
 
-def get_ready_data(which: DatasetType) -> pd.DataFrame:
-    """
-    Get data after data preparation.
-
-    Parameters:
-        which: DatasetType
-            Which dataset to get.
-
-    Returns:
-        pd.DataFrame:
-            DataFrame of the dataset.
-    """
-    _check_dataset_type(which)
-
-    dataset_dir = get_dataset_directory(which)
-    return unpickle_data(f"{dataset_dir}/{DATA_PREPROCESSED_FILENAME}")
-
-
 def load_merged_data_from_csv(
     path: Path,
 ) -> tuple[pd.DataFrame, pd.Series, pd.DataFrame, pd.Series]:
@@ -144,7 +126,7 @@ def load_merged_data(
         tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.Series]:
             Tuple of X_merged, y_merged, report_ids and patient_ids.
     """
-    data_dir = f"{get_dataset_directory(which)}/merged_data"
+    data_dir = Path(DATA_DIR) / which / "merged_data"
 
     def join(data_dir, filename):
         return data_dir + "/" + filename
