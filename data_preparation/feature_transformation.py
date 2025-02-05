@@ -866,10 +866,22 @@ def count_unknown_values(
 
 
 def count_records_per_patient(data: pd.DataFrame) -> pd.DataFrame:
-    if ALGO_FILTERED_COLUMN not in data.columns:
-        raise KeyError(f"{ALGO_FILTERED_COLUMN} not in columns")
+    """Count the number of records for each patient.
+
+    Parameters:
+        data: pd.DataFrame
+            DataFrame with the data.
+
+    Returns:
+        pd.DataFrame
+            DataFrame with the number of records for each patient.
+    """
 
     data = data.copy()
+
+    # If algo filtered column is not present, then all records are considered
+    if ALGO_FILTERED_COLUMN not in data.columns:
+        data[ALGO_FILTERED_COLUMN] = 0
 
     rec_count = (
         (data[data[ALGO_FILTERED_COLUMN] == 0].groupby(PATIENT_ID_NAME).size())
