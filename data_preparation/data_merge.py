@@ -1,7 +1,4 @@
-import argparse
-import datetime
 import logging
-import pickle
 from functools import partial
 from pathlib import Path
 
@@ -16,10 +13,7 @@ from data_preparation.fold_unfold_merged_data import (
     fold_merged_data,
     unfold_merged_data,
 )
-from data_preparation.merge_records import (
-    drop_multi_cols,
-    merge_groups_each_row,
-)
+from data_preparation.merge_records import drop_multi_cols, merge_groups_each_row
 from data_preparation.merged_transformation import (
     add_cols_equal,
     any_c76_c80_check,
@@ -140,9 +134,7 @@ def prepare_merged_data(
     data = data[data[RECORD_COUNT_NAME].between(TAKE_RANGE[0], TAKE_RANGE[1])]
     len_aft = len(data)
 
-    logger.info(
-        f"{len_bef - len_aft} rows removed after taking in range {TAKE_RANGE}"
-    )
+    logger.info(f"{len_bef - len_aft} rows removed after taking in range {TAKE_RANGE}")
 
     fillna_dict = init_fillna_dict(data)
     X_merged = merge_groups_each_row(
@@ -178,9 +170,7 @@ def prepare_merged_data(
         inplace=True,
     )
 
-    logger.info(
-        f"Shape after dropping columns: {X_merged.shape}, {y_merged.shape}"
-    )
+    logger.info(f"Shape after dropping columns: {X_merged.shape}, {y_merged.shape}")
 
     # Transform float columns to int
     logger.info(
@@ -214,6 +204,4 @@ if __name__ == "__main__":
     # Load prepared data and merge records
     merged_data = prepare_merged_data(pd.read_csv(PREPARED_DATA_PATH))
 
-    X_merged, y_merged, record_ids, patient_ids = unfold_merged_data(
-        merged_data
-    )
+    X_merged, y_merged, record_ids, patient_ids = unfold_merged_data(merged_data)
